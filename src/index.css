@@ -81,27 +81,27 @@
 
 @layer utilities {
   .glow-green {
-    box-shadow: 0 0 20px hsl(151 100% 50% / 0.3), 0 0 60px hsl(151 100% 50% / 0.1);
+    box-shadow: 0 0 20px hsl(90 85% 45% / 0.3), 0 0 60px hsl(90 85% 45% / 0.1);
   }
 
   .glow-cyan {
-    box-shadow: 0 0 20px hsl(191 100% 50% / 0.3), 0 0 60px hsl(191 100% 50% / 0.1);
+    box-shadow: 0 0 20px hsl(180 85% 45% / 0.3), 0 0 60px hsl(180 85% 45% / 0.1);
   }
 
   .glow-green-sm {
-    box-shadow: 0 0 10px hsl(151 100% 50% / 0.2);
+    box-shadow: 0 0 10px hsl(90 85% 45% / 0.2);
   }
 
   .glow-cyan-sm {
-    box-shadow: 0 0 10px hsl(191 100% 50% / 0.2);
+    box-shadow: 0 0 10px hsl(180 85% 45% / 0.2);
   }
 
   .text-glow-green {
-    text-shadow: 0 0 20px hsl(151 100% 50% / 0.5);
+    text-shadow: 0 0 20px hsl(90 85% 45% / 0.5);
   }
 
   .text-glow-cyan {
-    text-shadow: 0 0 20px hsl(191 100% 50% / 0.5);
+    text-shadow: 0 0 20px hsl(180 85% 45% / 0.5);
   }
 
   .gradient-border {
@@ -116,7 +116,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, hsl(151 100% 50% / 0.4), hsl(191 100% 50% / 0.4));
+    background: linear-gradient(135deg, hsl(90 85% 45% / 0.4), hsl(180 85% 45% / 0.4));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -126,18 +126,18 @@
 
   .bg-grid {
     background-image: 
-      linear-gradient(hsl(220 14% 16% / 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(220 14% 16% / 0.5) 1px, transparent 1px);
+      linear-gradient(hsl(160 8% 14% / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(160 8% 14% / 0.5) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 
   .bg-dots {
-    background-image: radial-gradient(circle, hsl(220 14% 20%) 1px, transparent 1px);
+    background-image: radial-gradient(circle, hsl(160 8% 18%) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .section-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(151 100% 50% / 0.2), hsl(191 100% 50% / 0.2), transparent);
+    background: linear-gradient(90deg, transparent, hsl(90 85% 45% / 0.2), hsl(180 85% 45% / 0.2), transparent);
   }
 }
