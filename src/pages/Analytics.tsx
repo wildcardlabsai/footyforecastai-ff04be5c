@@ -124,7 +124,7 @@ const Analytics = () => {
                 <Pie data={confidenceData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={2}>
                   {confidenceData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <RechartsTooltip contentStyle={{ background: 'hsl(220, 18%, 7%)', border: '1px solid hsl(220, 14%, 16%)', borderRadius: 8, fontSize: 12 }} />
+                <RechartsTooltip contentStyle={CHART_TOOLTIP_STYLE} />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex flex-wrap justify-center gap-3 mt-2">
