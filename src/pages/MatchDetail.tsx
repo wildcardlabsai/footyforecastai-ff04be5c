@@ -234,21 +234,21 @@ const MatchDetail = () => {
               </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={timeline}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 16%)" />
-                  <XAxis dataKey="minute" tick={{ fill: 'hsl(220, 10%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, 100]} tick={{ fill: 'hsl(220, 10%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(160, 8%, 14%)" />
+                  <XAxis dataKey="minute" tick={{ fill: 'hsl(160, 8%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} tick={{ fill: 'hsl(160, 8%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <RechartsTooltip
-                    contentStyle={{ background: 'hsl(220, 18%, 7%)', border: '1px solid hsl(220, 14%, 16%)', borderRadius: 8, fontSize: 12 }}
+                    contentStyle={{ background: 'hsl(160, 12%, 6%)', border: '1px solid hsl(160, 8%, 14%)', borderRadius: 8, fontSize: 12 }}
                     formatter={(value: number) => [`${value}%`, 'Probability']}
                   />
                   <defs>
                     <linearGradient id="probGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(151, 100%, 50%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(151, 100%, 50%)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(90, 85%, 45%)" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(90, 85%, 45%)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <ReferenceLine y={62} stroke="hsl(38, 92%, 50%)" strokeDasharray="5 5" strokeOpacity={0.5} />
-                  <Area type="monotone" dataKey="probability" stroke="hsl(151, 100%, 50%)" fill="url(#probGrad)" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="probability" stroke="hsl(90, 85%, 45%)" fill="url(#probGrad)" strokeWidth={2} dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
               <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
