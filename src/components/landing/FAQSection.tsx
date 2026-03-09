@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Mail } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -40,41 +41,54 @@ const faqs = [
 const FAQSection = () => {
   return (
     <section id="faq" className="py-24">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center"
-        >
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Frequently Asked Questions
-          </h2>
-        </motion.div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:items-start">
+          {/* Left column: heading + CTA */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="lg:sticky lg:top-24"
+          >
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed">
+              Can't find what you're looking for? Reach out and we'll get back to you within 24 hours.
+            </p>
+            <a
+              href="mailto:support@goalpulse.ai"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
+            >
+              <Mail className="h-4 w-4" />
+              Contact Support
+            </a>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-12"
-        >
-          <Accordion type="single" collapsible className="space-y-2">
-            {faqs.map((faq, i) => (
-              <AccordionItem
-                key={i}
-                value={`item-${i}`}
-                className="rounded-lg border border-border bg-card/50 px-4 data-[state=open]:border-primary/20"
-              >
-                <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
-                  {faq.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </motion.div>
+          {/* Right column: accordion */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+          >
+            <Accordion type="single" collapsible className="space-y-2">
+              {faqs.map((faq, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`item-${i}`}
+                  className="rounded-lg border border-border bg-card/50 px-4 data-[state=open]:border-primary/20"
+                >
+                  <AccordionTrigger className="text-sm font-medium text-foreground hover:no-underline">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

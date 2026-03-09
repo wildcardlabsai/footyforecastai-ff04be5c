@@ -118,8 +118,15 @@ const PricingSection = () => {
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground">
-                    MOST POPULAR
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 overflow-hidden rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground">
+                    <span className="relative z-10">MOST POPULAR</span>
+                    <div
+                      className="absolute inset-0 animate-shimmer"
+                      style={{
+                        backgroundImage: "linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.2) 50%, transparent 100%)",
+                        backgroundSize: "200% 100%",
+                      }}
+                    />
                   </div>
                 )}
                 <div>

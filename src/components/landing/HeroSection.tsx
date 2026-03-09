@@ -5,6 +5,27 @@ import { Link } from "react-router-dom";
 import { useCountUp } from "@/hooks/useCountUp";
 import DashboardPreview from "./DashboardPreview";
 
+const floatingBadges = [
+  {
+    text: "⚡ Arsenal 82% — Goal likely",
+    position: "top-8 -left-4 lg:top-16 lg:-left-12",
+    delay: 0,
+    animation: "animate-float",
+  },
+  {
+    text: "🔥 3 signals active",
+    position: "top-1/3 -right-2 lg:-right-8",
+    delay: 1.5,
+    animation: "animate-float-slow",
+  },
+  {
+    text: "🎯 xG spike detected",
+    position: "bottom-12 -left-2 lg:bottom-16 lg:-left-6",
+    delay: 3,
+    animation: "animate-float-slower",
+  },
+];
+
 const HeroSection = () => {
   const accuracy = useCountUp(73);
   const alerts = useCountUp(2400);
@@ -71,7 +92,7 @@ const HeroSection = () => {
             </Link>
           </motion.div>
 
-          {/* Stats bar with count-up */}
+          {/* Stats bar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -104,13 +125,28 @@ const HeroSection = () => {
             </div>
           </motion.div>
 
-          {/* Dashboard Preview - hidden on mobile */}
+          {/* Dashboard Preview with floating badges */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="mt-16 w-full hidden md:block"
+            className="relative mt-16 w-full hidden md:block"
           >
+            {/* Floating signal badges */}
+            {floatingBadges.map((badge, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.8 + badge.delay * 0.3 }}
+                className={`absolute z-10 ${badge.position} ${badge.animation}`}
+                style={{ animationDelay: `${badge.delay}s` }}
+              >
+                <div className="rounded-lg border border-primary/20 bg-card/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-lg shadow-primary/5 backdrop-blur-sm">
+                  {badge.text}
+                </div>
+              </motion.div>
+            ))}
             <DashboardPreview />
           </motion.div>
         </div>

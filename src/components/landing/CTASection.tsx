@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Zap } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
+import Logo from "@/components/Logo";
 
 const CTASection = () => {
   return (
@@ -16,9 +17,14 @@ const CTASection = () => {
           <div className="absolute inset-0 bg-grid opacity-20" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
+          {/* Subtle floating dots */}
+          <div className="absolute top-8 left-12 h-1 w-1 rounded-full bg-primary/30 animate-float" />
+          <div className="absolute top-16 right-16 h-1.5 w-1.5 rounded-full bg-accent/30 animate-float-slow" />
+          <div className="absolute bottom-12 left-1/4 h-1 w-1 rounded-full bg-primary/20 animate-float-slower" />
+
           <div className="relative">
             <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-              <Zap className="h-7 w-7 text-primary" />
+              <Logo size="md" />
             </div>
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
               Ready to Spot the Next Goal?
