@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { DemoMatch } from "@/services/demoData";
 import { PredictionResult } from "@/services/predictionEngine";
 import { Badge } from "@/components/ui/badge";
