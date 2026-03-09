@@ -29,10 +29,10 @@ const Analytics = () => {
   ], []);
 
   const confidenceData = useMemo(() => [
-    { name: 'Very High', value: 22, color: 'hsl(151, 100%, 50%)' },
-    { name: 'High', value: 38, color: 'hsl(191, 100%, 50%)' },
-    { name: 'Medium', value: 31, color: 'hsl(38, 92%, 50%)' },
-    { name: 'Low', value: 9, color: 'hsl(220, 10%, 45%)' },
+    { name: 'Very High', value: 22, color: CHART_COLORS.primary },
+    { name: 'High', value: 38, color: CHART_COLORS.accent },
+    { name: 'Medium', value: 31, color: CHART_COLORS.warning },
+    { name: 'Low', value: 9, color: CHART_COLORS.muted },
   ], []);
 
   const hourlyData = useMemo(() => Array.from({ length: 24 }, (_, i) => ({
