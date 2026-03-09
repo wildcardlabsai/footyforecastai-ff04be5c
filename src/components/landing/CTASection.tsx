@@ -1,0 +1,41 @@
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Zap } from "lucide-react";
+
+const CTASection = () => {
+  return (
+    <section className="py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative overflow-hidden rounded-2xl border border-primary/20 bg-card p-12 text-center glow-green"
+        >
+          <div className="absolute inset-0 bg-grid opacity-20" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+
+          <div className="relative">
+            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+              <Zap className="h-7 w-7 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+              Ready to Spot the Next Goal?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+              Join thousands of football intelligence enthusiasts. Start scanning live matches and receiving goal pressure alerts today.
+            </p>
+            <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <Button size="lg" className="glow-green-sm gap-2 px-8 text-base font-bold">
+                Start Free Now <ArrowRight className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground">No credit card required</span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default CTASection;
