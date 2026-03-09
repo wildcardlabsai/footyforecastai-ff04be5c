@@ -10,6 +10,7 @@ interface Props {
 }
 
 const HotMatchesPanel = ({ matches, predictions }: Props) => {
+  const navigate = useNavigate();
   const hotMatches = matches
     .filter((m) => {
       const pred = predictions.get(m.id);
