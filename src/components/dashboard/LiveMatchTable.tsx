@@ -20,6 +20,58 @@ const getConfBadge = (conf: string) => {
   }
 };
 
+// Mobile card view for a single match
+const MatchCard = ({ m, pred, onClick }: { m: DemoMatch; pred?: PredictionResult; onClick: () => void }) => {
+  const prob = pred?.probabilityScore || 0;
+  const isHot = pred?.triggerStatus;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`rounded-lg border border-border/50 p-3 transition-colors hover:bg-secondary/20 cursor-pointer ${isHot ? "bg-primary/[0.03] border-primary/20" : ""}`}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground truncate">{m.league}</span>
+        <span className="text-[10px] font-mono text-muted-foreground">
+          {m.status === 'halftime' ? 'HT' : `${m.minute}'`}
+        </span>
+      </div>
+      <div className="mt-1.5 flex items-center justify-between">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-foreground truncate">{m.homeTeam}</div>
+          <div className="text-sm font-medium text-foreground truncate">{m.awayTeam}</div>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-3">
+          <span className="font-mono text-sm font-bold text-foreground">{m.homeScore}</span>
+          <span className="font-mono text-sm font-bold text-foreground">{m.awayScore}</span>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 w-10 rounded-full bg-secondary overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${prob >= 70 ? "bg-primary" : prob >= 50 ? "bg-accent" : "bg-muted-foreground"}`}
+              style={{ width: `${prob}%` }}
+            />
+          </div>
+          <span className={`font-mono text-xs font-bold ${prob >= 70 ? "text-primary" : prob >= 50 ? "text-accent" : "text-muted-foreground"}`}>
+            {prob}%
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {pred && getConfBadge(pred.confidence)}
+          {isHot && (
+            <div className="flex items-center gap-0.5 text-primary">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-[10px] font-semibold">HOT</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LiveMatchTable = ({ matches, predictions }: Props) => {
   const navigate = useNavigate();
   const sorted = [...matches].sort((a, b) => {
@@ -37,7 +89,25 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile: card list */}
+      <div className="md:hidden divide-y divide-border/20 p-2 space-y-2">
+        {sorted.slice(0, 8).map((m) => (
+          <MatchCard
+            key={m.id}
+            m={m}
+            pred={predictions.get(m.id)}
+            onClick={() => navigate(`/match/${m.id}`)}
+          />
+        ))}
+        {sorted.length > 8 && (
+          <Link to="/live-matches" className="block text-center py-2 text-xs text-primary hover:underline">
+            View all {sorted.length} matches
+          </Link>
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-border/50 text-muted-foreground">
@@ -91,7 +161,7 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
                   </td>
                   <td className="px-4 py-2.5 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="h-1.5 w-12 rounded-full bg-secondary overflow-hidden hidden sm:block">
+                      <div className="h-1.5 w-12 rounded-full bg-secondary overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${prob >= 70 ? "bg-primary" : prob >= 50 ? "bg-accent" : "bg-muted-foreground"}`}
                           style={{ width: `${prob}%` }}

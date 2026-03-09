@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Play, TrendingUp, Zap, Target, Radio } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useRef } from "react";
 import DashboardPreview from "./DashboardPreview";
 
 const floatingBadges = [
@@ -30,12 +31,28 @@ const HeroSection = () => {
   const accuracy = useCountUp(73);
   const alerts = useCountUp(2400);
   const matches = useCountUp(180);
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const orbScale = useTransform(scrollYProgress, [0, 1], [1, 1.3]);
+  const orbOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
-    <section className="relative min-h-screen overflow-hidden pt-16">
-      <div className="absolute inset-0 bg-grid opacity-30" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
-      <div className="absolute bottom-1/4 right-0 h-[400px] w-[400px] rounded-full bg-accent/5 blur-[100px]" />
+    <section ref={sectionRef} className="relative min-h-screen overflow-hidden pt-16">
+      {/* Parallax background layers */}
+      <motion.div style={{ y: bgY }} className="absolute inset-0 bg-grid opacity-30" />
+      <motion.div
+        style={{ scale: orbScale, opacity: orbOpacity }}
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]"
+      />
+      <motion.div
+        style={{ scale: orbScale, opacity: orbOpacity }}
+        className="absolute bottom-1/4 right-0 h-[400px] w-[400px] rounded-full bg-accent/5 blur-[100px]"
+      />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center pt-20 pb-16 text-center lg:pt-28">
@@ -132,7 +149,6 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="relative mt-16 w-full hidden md:block"
           >
-            {/* Floating signal badges */}
             {floatingBadges.map((badge, i) => (
               <motion.div
                 key={i}
