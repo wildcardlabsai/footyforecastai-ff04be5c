@@ -1,28 +1,19 @@
-import { useState } from "react";
 import { DemoMatch } from "@/services/demoData";
 import { PredictionResult } from "@/services/predictionEngine";
-import { Eye, EyeOff, Star, X } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
   matches: DemoMatch[];
   predictions: Map<string, PredictionResult>;
+  watchedIds: Set<string>;
+  onToggleWatch: (id: string) => void;
 }
 
-// Demo: pre-watched match IDs
-const INITIAL_WATCHED = ['dm1', 'dm6', 'dm2', 'dm18'];
-
-const WatchedGamesPanel = ({ matches, predictions }: Props) => {
+const WatchedGamesPanel = ({ matches, predictions, watchedIds, onToggleWatch }: Props) => {
   const navigate = useNavigate();
-  const [watchedIds, setWatchedIds] = useState<string[]>(INITIAL_WATCHED);
-
-  const watchedMatches = matches.filter((m) => watchedIds.includes(m.id));
-
-  const removeFromWatchlist = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    setWatchedIds((prev) => prev.filter((wid) => wid !== id));
-  };
+  const watchedMatches = matches.filter((m) => watchedIds.has(m.id));
 
   return (
     <div className="rounded-xl border border-border bg-card">
@@ -39,7 +30,9 @@ const WatchedGamesPanel = ({ matches, predictions }: Props) => {
           <div className="p-6 text-center">
             <EyeOff className="mx-auto h-8 w-8 text-muted-foreground/30" />
             <p className="mt-2 text-sm text-muted-foreground">No games being tracked</p>
-            <p className="mt-1 text-xs text-muted-foreground">Add games from Live Matches to track them here</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Click the ★ icon on any match to start tracking it
+            </p>
           </div>
         ) : (
           watchedMatches.map((m) => {
@@ -73,7 +66,7 @@ const WatchedGamesPanel = ({ matches, predictions }: Props) => {
                       {prob}%
                     </span>
                     <button
-                      onClick={(e) => removeFromWatchlist(e, m.id)}
+                      onClick={(e) => { e.stopPropagation(); onToggleWatch(m.id); }}
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
                       title="Remove from watchlist"
                     >
@@ -82,7 +75,6 @@ const WatchedGamesPanel = ({ matches, predictions }: Props) => {
                   </div>
                 </div>
 
-                {/* Mini signal indicators */}
                 {pred && pred.activeSignals.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     {pred.activeSignals.slice(0, 3).map((s) => (
