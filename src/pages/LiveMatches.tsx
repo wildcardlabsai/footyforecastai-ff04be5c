@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { getDemoMatches, DemoMatch } from "@/services/demoData";
 import { runPredictions, PredictionResult } from "@/services/predictionEngine";
@@ -21,6 +22,7 @@ const getConfBadge = (conf: string) => {
 type SortKey = 'prob' | 'minute' | 'league';
 
 const LiveMatches = () => {
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<DemoMatch[]>([]);
   const [predictions, setPredictions] = useState<Map<string, PredictionResult>>(new Map());
   const [search, setSearch] = useState("");
@@ -181,7 +183,7 @@ const LiveMatches = () => {
                   const prob = pred?.probabilityScore || 0;
                   const isHot = pred?.triggerStatus;
                   return (
-                    <tr key={m.id} className={`border-b border-border/20 transition-colors hover:bg-secondary/20 ${isHot ? "bg-primary/[0.03]" : ""}`}>
+                    <tr key={m.id} onClick={() => navigate(`/match/${m.id}`)} className={`border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer ${isHot ? "bg-primary/[0.03]" : ""}`}>
                       <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
                       <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">
                         <span className="hidden sm:inline">{m.homeTeam} vs {m.awayTeam}</span>
