@@ -83,12 +83,12 @@ const Analytics = () => {
             <h3 className="text-sm font-semibold text-foreground mb-4">Alerts vs Goals (7 days)</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={dailyAlerts}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 16%)" />
-                <XAxis dataKey="day" tick={{ fill: 'hsl(220, 10%, 55%)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'hsl(220, 10%, 55%)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <RechartsTooltip contentStyle={{ background: 'hsl(220, 18%, 7%)', border: '1px solid hsl(220, 14%, 16%)', borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="alerts" fill="hsl(191, 100%, 50%)" radius={[4, 4, 0, 0]} opacity={0.6} name="Alerts" />
-                <Bar dataKey="goals" fill="hsl(151, 100%, 50%)" radius={[4, 4, 0, 0]} name="Goals Hit" />
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
+                <XAxis dataKey="day" tick={{ ...CHART_TICK, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ ...CHART_TICK, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <RechartsTooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                <Bar dataKey="alerts" fill={CHART_COLORS.accent} radius={[4, 4, 0, 0]} opacity={0.6} name="Alerts" />
+                <Bar dataKey="goals" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} name="Goals Hit" />
               </BarChart>
             </ResponsiveContainer>
           </div>
