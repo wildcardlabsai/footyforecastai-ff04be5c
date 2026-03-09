@@ -21,6 +21,7 @@ const getConfBadge = (conf: string) => {
 };
 
 const LiveMatchTable = ({ matches, predictions }: Props) => {
+  const navigate = useNavigate();
   const sorted = [...matches].sort((a, b) => {
     const pa = predictions.get(a.id)?.probabilityScore || 0;
     const pb = predictions.get(b.id)?.probabilityScore || 0;
