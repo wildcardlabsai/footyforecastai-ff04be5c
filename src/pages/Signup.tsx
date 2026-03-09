@@ -34,8 +34,8 @@ const Signup = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background bg-grid px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <Zap className="h-7 w-7 text-primary" />
+          <div className="mx-auto mb-4">
+            <Logo size="lg" className="mx-auto" />
           </div>
           <h1 className="mb-2 text-2xl font-bold text-foreground">Check your email</h1>
           <p className="text-sm text-muted-foreground">
