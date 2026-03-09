@@ -8,7 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Zap, ArrowRight, ArrowLeft, Globe, Bell, Sliders, Trophy, Search, SkipForward } from "lucide-react";
+import { ArrowRight, ArrowLeft, Globe, Bell, Sliders, Trophy, Search, SkipForward } from "lucide-react";
+import Logo from "@/components/Logo";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
