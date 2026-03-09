@@ -51,7 +51,7 @@ const Analytics = () => {
     { icon: Target, label: "Hit Rate", value: "73%", color: "text-primary" },
     { icon: TrendingUp, label: "Avg Probability", value: "68%", color: "text-accent" },
     { icon: Clock, label: "Avg Response", value: "4.2s", color: "text-foreground" },
-    { icon: Zap, label: "Active Strategies", value: "2", color: "text-primary" },
+    { icon: Sliders, label: "Active Strategies", value: "2", color: "text-primary" },
     { icon: BarChart3, label: "Leagues Covered", value: "8", color: "text-accent" },
   ];
 
