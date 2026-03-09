@@ -7,9 +7,7 @@ const Footer = () => {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
+              <Logo size="sm" />
               <span className="text-sm font-bold text-foreground">
                 GoalPulse<span className="text-primary"> AI</span>
               </span>
