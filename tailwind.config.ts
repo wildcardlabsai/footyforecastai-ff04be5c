@@ -74,6 +74,10 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        watch: {
+          DEFAULT: "hsl(var(--watch))",
+          foreground: "hsl(var(--watch-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -97,12 +101,17 @@ export default {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "scan-line": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(100%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "slide-up": "slide-up 0.5s ease-out",
+        "scan-line": "scan-line 3s ease-in-out infinite",
       },
     },
   },

@@ -10,7 +10,7 @@ const matches = [
 ];
 
 const getConfidenceBadge = (prob: number) => {
-  if (prob >= 75) return <Badge className="bg-primary/20 text-primary border-primary/30 glow-green-sm text-xs">Very High</Badge>;
+  if (prob >= 75) return <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">Very High</Badge>;
   if (prob >= 60) return <Badge className="bg-accent/20 text-accent border-accent/30 text-xs">High</Badge>;
   if (prob >= 40) return <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">Medium</Badge>;
   return <Badge variant="outline" className="text-muted-foreground text-xs">Low</Badge>;
@@ -18,7 +18,12 @@ const getConfidenceBadge = (prob: number) => {
 
 const DashboardPreview = () => {
   return (
-    <div className="rounded-xl border border-border bg-card/80 p-1 backdrop-blur-sm glow-green" style={{ boxShadow: '0 0 80px hsl(151 100% 50% / 0.08), 0 25px 50px -12px rgb(0 0 0 / 0.5)' }}>
+    <div className="relative rounded-xl border border-border bg-card/80 p-1 backdrop-blur-sm glow-green" style={{ boxShadow: '0 0 80px hsl(151 100% 50% / 0.08), 0 25px 50px -12px rgb(0 0 0 / 0.5)' }}>
+      {/* Scanning line animation */}
+      <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none z-10">
+        <div className="h-8 w-full bg-gradient-to-b from-primary/5 to-transparent animate-scan-line" />
+      </div>
+
       <div className="rounded-lg border border-border/50 bg-background">
         {/* Header bar */}
         <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
@@ -88,7 +93,7 @@ const DashboardPreview = () => {
                     <span className="text-[10px] font-semibold">HOT</span>
                   </div>
                 ) : m.status === "watch" ? (
-                  <div className="flex items-center gap-1 text-accent">
+                  <div className="flex items-center gap-1 text-watch">
                     <AlertTriangle className="h-3 w-3" />
                     <span className="text-[10px]">WATCH</span>
                   </div>

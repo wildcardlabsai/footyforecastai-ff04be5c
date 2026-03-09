@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight, Play, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -26,11 +27,18 @@ const CTASection = () => {
               Join thousands of football intelligence enthusiasts. Start scanning live matches and receiving goal pressure alerts today.
             </p>
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Button size="lg" className="glow-green-sm gap-2 px-8 text-base font-bold">
-                Start Free Now <ArrowRight className="h-4 w-4" />
-              </Button>
-              <span className="text-xs text-muted-foreground">No credit card required</span>
+              <Link to="/signup">
+                <Button size="lg" className="glow-green-sm gap-2 px-8 text-base font-bold">
+                  Start Free Now <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button variant="outline" size="lg" className="gap-2 px-6 text-base">
+                  <Play className="h-4 w-4" /> View Demo
+                </Button>
+              </Link>
             </div>
+            <span className="mt-4 inline-block text-xs text-muted-foreground">No credit card required</span>
           </div>
         </motion.div>
       </div>

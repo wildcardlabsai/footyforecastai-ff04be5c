@@ -60,7 +60,7 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="group rounded-xl border border-border bg-card/50 p-6 backdrop-blur-sm transition-all hover:border-accent/30"
+              className="group rounded-xl border border-border bg-card/50 p-6 backdrop-blur-sm transition-all hover:border-accent/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/5"
             >
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent transition-colors group-hover:bg-accent/20">
                 <f.icon className="h-5 w-5" />

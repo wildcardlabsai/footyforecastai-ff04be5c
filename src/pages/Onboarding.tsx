@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Zap, ArrowRight, ArrowLeft, Globe, Bell, Sliders, Trophy } from "lucide-react";
+import { Zap, ArrowRight, ArrowLeft, Globe, Bell, Sliders, Trophy, Search, SkipForward } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -29,8 +30,11 @@ const Onboarding = () => {
   const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
   const [alertChannel, setAlertChannel] = useState<string>("email");
   const [alertStyle, setAlertStyle] = useState<string>("balanced");
-  const [timezone, setTimezone] = useState<string>("UTC");
+  const [timezone, setTimezone] = useState<string>(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  );
   const [watchlistLeagues, setWatchlistLeagues] = useState<string[]>([]);
+  const [leagueSearch, setLeagueSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -39,6 +43,13 @@ const Onboarding = () => {
   const toggleLeague = (league: string, list: string[], setList: (v: string[]) => void) => {
     setList(list.includes(league) ? list.filter((l) => l !== league) : [...list, league]);
   };
+
+  const filteredLeagues = useMemo(() =>
+    LEAGUES.filter(l => l.toLowerCase().includes(leagueSearch.toLowerCase())),
+    [leagueSearch]
+  );
+
+  const handleSkip = () => navigate("/dashboard");
 
   const handleComplete = async () => {
     if (!user) return;
@@ -73,20 +84,34 @@ const Onboarding = () => {
       title: "Select Your Leagues",
       subtitle: "Choose the leagues you want GoalPulse to monitor",
       content: (
-        <div className="grid grid-cols-2 gap-2">
-          {LEAGUES.map((league) => (
-            <button
-              key={league}
-              onClick={() => toggleLeague(league, selectedLeagues, setSelectedLeagues)}
-              className={`rounded-lg border px-3 py-2 text-left text-sm transition-all ${
-                selectedLeagues.includes(league)
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-secondary/30 text-muted-foreground hover:border-border/80"
-              }`}
-            >
-              {league}
-            </button>
-          ))}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search leagues..."
+              value={leagueSearch}
+              onChange={(e) => setLeagueSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {selectedLeagues.length > 0 && (
+            <div className="text-xs text-primary font-medium">{selectedLeagues.length} selected</div>
+          )}
+          <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto">
+            {filteredLeagues.map((league) => (
+              <button
+                key={league}
+                onClick={() => toggleLeague(league, selectedLeagues, setSelectedLeagues)}
+                className={`rounded-lg border px-3 py-2 text-left text-sm transition-all ${
+                  selectedLeagues.includes(league)
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-secondary/30 text-muted-foreground hover:border-border/80"
+                }`}
+              >
+                {league}
+              </button>
+            ))}
+          </div>
         </div>
       ),
     },
@@ -189,13 +214,19 @@ const Onboarding = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background bg-grid px-4">
       <div className="w-full max-w-lg">
-        <div className="mb-6 text-center">
+        <div className="mb-6 flex items-center justify-between">
           <div className="inline-flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary glow-green-sm">
               <Zap className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="text-lg font-bold text-foreground">GoalPulse<span className="text-primary"> AI</span></span>
           </div>
+          <button
+            onClick={handleSkip}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Skip <SkipForward className="h-3 w-3" />
+          </button>
         </div>
 
         {/* Progress */}
@@ -232,7 +263,7 @@ const Onboarding = () => {
                 </Button>
               )}
               <Button
-                className="flex-1 glow-green-sm font-semibold"
+                className="flex-1 font-semibold"
                 onClick={() => (step < steps.length - 1 ? setStep(step + 1) : handleComplete())}
                 disabled={loading}
               >

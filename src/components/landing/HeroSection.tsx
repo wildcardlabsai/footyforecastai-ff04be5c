@@ -1,19 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Play, TrendingUp, Zap, Target, Radio } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useCountUp } from "@/hooks/useCountUp";
 import DashboardPreview from "./DashboardPreview";
 
 const HeroSection = () => {
+  const accuracy = useCountUp(73);
+  const alerts = useCountUp(2400);
+  const matches = useCountUp(180);
+
   return (
     <section className="relative min-h-screen overflow-hidden pt-16">
-      {/* Background effects */}
       <div className="absolute inset-0 bg-grid opacity-30" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
       <div className="absolute bottom-1/4 right-0 h-[400px] w-[400px] rounded-full bg-accent/5 blur-[100px]" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center pt-20 pb-16 text-center lg:pt-28">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -24,7 +28,6 @@ const HeroSection = () => {
             Live Football Intelligence Platform
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -35,7 +38,6 @@ const HeroSection = () => {
             <span className="text-primary text-glow-green">Before The Net Bulges</span>
           </motion.h1>
 
-          {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -47,51 +49,54 @@ const HeroSection = () => {
             intelligent signal detection.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             className="mt-10 flex flex-col gap-4 sm:flex-row"
           >
-            <Button size="lg" className="glow-green gap-2 px-8 text-base font-bold">
-              Start Free <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="gap-2 border-border px-8 text-base"
-            >
-              <Play className="h-4 w-4" /> View Demo
-            </Button>
+            <Link to="/signup">
+              <Button size="lg" className="glow-green gap-2 px-8 text-base font-bold">
+                Start Free <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button
+                variant="outline"
+                size="lg"
+                className="gap-2 border-border px-8 text-base"
+              >
+                <Play className="h-4 w-4" /> View Demo
+              </Button>
+            </Link>
           </motion.div>
 
-          {/* Stats bar */}
+          {/* Stats bar with count-up */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mt-16 grid grid-cols-3 gap-8 rounded-2xl border border-border bg-card/50 p-6 backdrop-blur-sm sm:gap-16 sm:px-12"
           >
-            <div className="text-center">
+            <div className="text-center" ref={accuracy.ref}>
               <div className="flex items-center justify-center gap-1 text-2xl font-bold text-primary sm:text-3xl">
-                <TrendingUp className="h-5 w-5" /> 73%
+                <TrendingUp className="h-5 w-5" /> {accuracy.count}%
               </div>
               <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
                 Prediction Accuracy
               </div>
             </div>
-            <div className="text-center">
+            <div className="text-center" ref={alerts.ref}>
               <div className="flex items-center justify-center gap-1 text-2xl font-bold text-accent sm:text-3xl">
-                <Zap className="h-5 w-5" /> 2.4k
+                <Zap className="h-5 w-5" /> {alerts.count >= 1000 ? `${(alerts.count / 1000).toFixed(1)}k` : alerts.count}
               </div>
               <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
                 Alerts This Month
               </div>
             </div>
-            <div className="text-center">
+            <div className="text-center" ref={matches.ref}>
               <div className="flex items-center justify-center gap-1 text-2xl font-bold text-foreground sm:text-3xl">
-                <Target className="h-5 w-5" /> 180+
+                <Target className="h-5 w-5" /> {matches.count}+
               </div>
               <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
                 Matches Scanned Daily
@@ -99,12 +104,12 @@ const HeroSection = () => {
             </div>
           </motion.div>
 
-          {/* Dashboard Preview */}
+          {/* Dashboard Preview - hidden on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="mt-16 w-full"
+            className="mt-16 w-full hidden md:block"
           >
             <DashboardPreview />
           </motion.div>

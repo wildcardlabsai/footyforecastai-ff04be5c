@@ -1,20 +1,24 @@
 import { motion } from "framer-motion";
+import { Star } from "lucide-react";
 
 const testimonials = [
   {
     quote: "GoalPulse caught 3 late goals in one evening that I would have completely missed. The Telegram alerts are instant and the explanations actually make sense.",
     name: "Marcus R.",
     role: "Football Analyst, London",
+    stars: 5,
   },
   {
     quote: "I've tried every prediction tool out there. GoalPulse is different — it doesn't try to predict everything, just the high-pressure moments. That focus is why it works.",
     name: "Sofia L.",
     role: "Sports Data Enthusiast, Barcelona",
+    stars: 5,
   },
   {
     quote: "The strategy builder is genius. I set up a 'second half equalizer' filter and my hit rate jumped to 78%. No other platform gives you this level of control.",
     name: "James K.",
     role: "Pro Bettor, Melbourne",
+    stars: 4,
   },
 ];
 
@@ -41,8 +45,17 @@ const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="rounded-xl border border-border bg-card/50 p-6"
+              className="rounded-xl border border-border bg-card/50 p-6 transition-all hover:border-border/80 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5"
             >
+              {/* Star rating */}
+              <div className="mb-4 flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, si) => (
+                  <Star
+                    key={si}
+                    className={`h-4 w-4 ${si < t.stars ? "fill-warning text-warning" : "text-border"}`}
+                  />
+                ))}
+              </div>
               <p className="text-sm leading-relaxed text-muted-foreground italic">"{t.quote}"</p>
               <div className="mt-6 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
