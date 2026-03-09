@@ -41,9 +41,9 @@ const Analytics = () => {
   })), []);
 
   const resultPie = useMemo(() => [
-    { name: 'Goal Scored', value: 68, color: 'hsl(151, 100%, 50%)' },
-    { name: 'No Goal', value: 25, color: 'hsl(0, 72%, 51%)' },
-    { name: 'Pending', value: 7, color: 'hsl(38, 92%, 50%)' },
+    { name: 'Goal Scored', value: 68, color: CHART_COLORS.primary },
+    { name: 'No Goal', value: 25, color: CHART_COLORS.destructive },
+    { name: 'Pending', value: 7, color: CHART_COLORS.warning },
   ], []);
 
   const summaryStats = [
