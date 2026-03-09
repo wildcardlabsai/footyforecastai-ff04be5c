@@ -2,9 +2,10 @@ import { useState, ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Zap, LayoutDashboard, Radio, BarChart3, Bell, Sliders,
+  LayoutDashboard, Radio, BarChart3, Bell, Sliders,
   Settings, LogOut, ChevronLeft, ChevronRight, TrendingUp, Menu, X
 } from "lucide-react";
+import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
