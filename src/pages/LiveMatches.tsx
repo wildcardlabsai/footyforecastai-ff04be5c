@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { getDemoMatches, DemoMatch } from "@/services/demoData";
 import { runPredictions, PredictionResult } from "@/services/predictionEngine";
