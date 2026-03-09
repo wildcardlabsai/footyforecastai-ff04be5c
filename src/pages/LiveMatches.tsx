@@ -22,6 +22,7 @@ const getConfBadge = (conf: string) => {
 type SortKey = 'prob' | 'minute' | 'league';
 
 const LiveMatches = () => {
+  const navigate = useNavigate();
   const [matches, setMatches] = useState<DemoMatch[]>([]);
   const [predictions, setPredictions] = useState<Map<string, PredictionResult>>(new Map());
   const [search, setSearch] = useState("");
