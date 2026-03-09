@@ -70,6 +70,7 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
               return (
                 <tr
                   key={m.id}
+                  onClick={() => navigate(`/match/${m.id}`)}
                   className={`border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer ${isHot ? "bg-primary/[0.03]" : ""}`}
                 >
                   <td className="px-4 py-2.5 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
