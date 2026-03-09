@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [matches, setMatches] = useState<DemoMatch[]>([]);
   const [predictions, setPredictions] = useState<Map<string, PredictionResult>>(new Map());
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [watchedIds, setWatchedIds] = useState<Set<string>>(() => new Set(['dm1', 'dm6']));
   const stats = getDemoStats();
   const alerts = getDemoAlerts();
 
@@ -36,6 +37,15 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const toggleWatch = (id: string) => {
+    setWatchedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const liveCount = matches.filter(m => m.status === 'live').length;
 
   return (
@@ -49,13 +59,13 @@ const Dashboard = () => {
           Auto-refreshing · Last updated {lastUpdated.toLocaleTimeString()}
         </div>
 
-        {/* Main content grid - stacks on mobile */}
+        {/* Main content grid */}
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <LiveMatchTable matches={matches} predictions={predictions} />
+            <LiveMatchTable matches={matches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
           </div>
           <div className="space-y-4 sm:space-y-6">
-            <WatchedGamesPanel matches={matches} predictions={predictions} />
+            <WatchedGamesPanel matches={matches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
             <HotMatchesPanel matches={matches} predictions={predictions} />
             <RecentAlerts alerts={alerts} />
           </div>

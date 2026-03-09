@@ -2,13 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { DemoMatch } from "@/services/demoData";
 import { PredictionResult } from "@/services/predictionEngine";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, AlertTriangle, Eye } from "lucide-react";
+import { TrendingUp, AlertTriangle, Eye, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   matches: DemoMatch[];
   predictions: Map<string, PredictionResult>;
+  watchedIds: Set<string>;
+  onToggleWatch: (id: string) => void;
 }
 
 const getConfBadge = (conf: string) => {
@@ -20,8 +22,25 @@ const getConfBadge = (conf: string) => {
   }
 };
 
-// Mobile card view for a single match
-const MatchCard = ({ m, pred, onClick }: { m: DemoMatch; pred?: PredictionResult; onClick: () => void }) => {
+const WatchButton = ({ isWatched, onClick }: { isWatched: boolean; onClick: (e: React.MouseEvent) => void }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button
+        onClick={onClick}
+        className={`p-1 rounded transition-colors ${isWatched ? "text-warning hover:text-warning/70" : "text-muted-foreground/40 hover:text-warning"}`}
+      >
+        <Star className={`h-3.5 w-3.5 ${isWatched ? "fill-warning" : ""}`} />
+      </button>
+    </TooltipTrigger>
+    <TooltipContent>{isWatched ? "Remove from watchlist" : "Add to watchlist"}</TooltipContent>
+  </Tooltip>
+);
+
+// Mobile card view
+const MatchCard = ({ m, pred, isWatched, onClick, onToggleWatch }: {
+  m: DemoMatch; pred?: PredictionResult; isWatched: boolean;
+  onClick: () => void; onToggleWatch: (e: React.MouseEvent) => void;
+}) => {
   const prob = pred?.probabilityScore || 0;
   const isHot = pred?.triggerStatus;
 
@@ -32,9 +51,12 @@ const MatchCard = ({ m, pred, onClick }: { m: DemoMatch; pred?: PredictionResult
     >
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-muted-foreground truncate">{m.league}</span>
-        <span className="text-[10px] font-mono text-muted-foreground">
-          {m.status === 'halftime' ? 'HT' : `${m.minute}'`}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-mono text-muted-foreground">
+            {m.status === 'halftime' ? 'HT' : `${m.minute}'`}
+          </span>
+          <WatchButton isWatched={isWatched} onClick={onToggleWatch} />
+        </div>
       </div>
       <div className="mt-1.5 flex items-center justify-between">
         <div className="min-w-0">
@@ -72,7 +94,7 @@ const MatchCard = ({ m, pred, onClick }: { m: DemoMatch; pred?: PredictionResult
   );
 };
 
-const LiveMatchTable = ({ matches, predictions }: Props) => {
+const LiveMatchTable = ({ matches, predictions, watchedIds, onToggleWatch }: Props) => {
   const navigate = useNavigate();
   const sorted = [...matches].sort((a, b) => {
     const pa = predictions.get(a.id)?.probabilityScore || 0;
@@ -96,7 +118,9 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
             key={m.id}
             m={m}
             pred={predictions.get(m.id)}
+            isWatched={watchedIds.has(m.id)}
             onClick={() => navigate(`/match/${m.id}`)}
+            onToggleWatch={(e) => { e.stopPropagation(); onToggleWatch(m.id); }}
           />
         ))}
         {sorted.length > 8 && (
@@ -111,25 +135,28 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-border/50 text-muted-foreground">
-              <th className="px-4 py-2 text-left font-medium">League</th>
-              <th className="px-4 py-2 text-left font-medium">Match</th>
-              <th className="px-4 py-2 text-center font-medium">Score</th>
-              <th className="px-4 py-2 text-center font-medium">Min</th>
-              <th className="px-4 py-2 text-center font-medium">
+              <th className="px-2 py-2 text-center font-medium w-8">
+                <Star className="h-3 w-3 mx-auto" />
+              </th>
+              <th className="px-3 py-2 text-left font-medium">League</th>
+              <th className="px-3 py-2 text-left font-medium">Match</th>
+              <th className="px-3 py-2 text-center font-medium">Score</th>
+              <th className="px-3 py-2 text-center font-medium">Min</th>
+              <th className="px-3 py-2 text-center font-medium">
                 <Tooltip>
                   <TooltipTrigger className="cursor-help border-b border-dashed border-muted-foreground/50">SOT</TooltipTrigger>
                   <TooltipContent>Shots on Target</TooltipContent>
                 </Tooltip>
               </th>
-              <th className="px-4 py-2 text-center font-medium">
+              <th className="px-3 py-2 text-center font-medium">
                 <Tooltip>
                   <TooltipTrigger className="cursor-help border-b border-dashed border-muted-foreground/50">DA</TooltipTrigger>
                   <TooltipContent>Dangerous Attacks</TooltipContent>
                 </Tooltip>
               </th>
-              <th className="px-4 py-2 text-center font-medium">Prob.</th>
-              <th className="px-4 py-2 text-center font-medium">Conf.</th>
-              <th className="px-4 py-2 text-center font-medium">Status</th>
+              <th className="px-3 py-2 text-center font-medium">Prob.</th>
+              <th className="px-3 py-2 text-center font-medium">Conf.</th>
+              <th className="px-3 py-2 text-center font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -137,29 +164,36 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
               const pred = predictions.get(m.id);
               const prob = pred?.probabilityScore || 0;
               const isHot = pred?.triggerStatus;
+              const isWatched = watchedIds.has(m.id);
               return (
                 <tr
                   key={m.id}
                   onClick={() => navigate(`/match/${m.id}`)}
                   className={`border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer ${isHot ? "bg-primary/[0.03]" : ""}`}
                 >
-                  <td className="px-4 py-2.5 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
-                  <td className="px-4 py-2.5 font-medium text-foreground whitespace-nowrap">
+                  <td className="px-2 py-2.5 text-center">
+                    <WatchButton
+                      isWatched={isWatched}
+                      onClick={(e) => { e.stopPropagation(); onToggleWatch(m.id); }}
+                    />
+                  </td>
+                  <td className="px-3 py-2.5 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
+                  <td className="px-3 py-2.5 font-medium text-foreground whitespace-nowrap">
                     {m.homeTeam} vs {m.awayTeam}
                   </td>
-                  <td className="px-4 py-2.5 text-center font-mono font-bold text-foreground">
+                  <td className="px-3 py-2.5 text-center font-mono font-bold text-foreground">
                     {m.homeScore}-{m.awayScore}
                   </td>
-                  <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                  <td className="px-3 py-2.5 text-center font-mono text-muted-foreground">
                     {m.status === 'halftime' ? 'HT' : `${m.minute}'`}
                   </td>
-                  <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                  <td className="px-3 py-2.5 text-center font-mono text-muted-foreground">
                     {m.stats.homeShotsOnTarget + m.stats.awayShotsOnTarget}
                   </td>
-                  <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                  <td className="px-3 py-2.5 text-center font-mono text-muted-foreground">
                     {m.stats.homeDangerousAttacks + m.stats.awayDangerousAttacks}
                   </td>
-                  <td className="px-4 py-2.5 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-1.5 w-12 rounded-full bg-secondary overflow-hidden">
                         <div
@@ -172,10 +206,10 @@ const LiveMatchTable = ({ matches, predictions }: Props) => {
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     {pred && getConfBadge(pred.confidence)}
                   </td>
-                  <td className="px-4 py-2.5 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     {isHot ? (
                       <div className="flex items-center justify-center gap-1 text-primary">
                         <TrendingUp className="h-3 w-3" />
