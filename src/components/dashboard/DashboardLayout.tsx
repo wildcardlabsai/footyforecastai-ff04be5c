@@ -2,9 +2,10 @@ import { useState, ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Zap, LayoutDashboard, Radio, BarChart3, Bell, Sliders,
+  LayoutDashboard, Radio, BarChart3, Bell, Sliders,
   Settings, LogOut, ChevronLeft, ChevronRight, TrendingUp, Menu, X
 } from "lucide-react";
+import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -41,18 +42,14 @@ const SidebarContent = ({
     <div className="flex h-14 items-center justify-between border-b border-border px-3">
       {!collapsed && (
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary glow-green-sm">
-            <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-          </div>
+          <Logo size="sm" />
           <span className="text-sm font-bold text-foreground">
             GoalPulse<span className="text-primary"> AI</span>
           </span>
         </Link>
       )}
       {collapsed && (
-        <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-primary glow-green-sm">
-          <Zap className="h-3.5 w-3.5 text-primary-foreground" />
-        </div>
+        <Logo size="sm" className="mx-auto" />
       )}
     </div>
 

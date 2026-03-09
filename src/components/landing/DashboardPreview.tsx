@@ -18,7 +18,7 @@ const getConfidenceBadge = (prob: number) => {
 
 const DashboardPreview = () => {
   return (
-    <div className="relative rounded-xl border border-border bg-card/80 p-1 backdrop-blur-sm glow-green" style={{ boxShadow: '0 0 80px hsl(151 100% 50% / 0.08), 0 25px 50px -12px rgb(0 0 0 / 0.5)' }}>
+    <div className="relative rounded-xl border border-border bg-card/80 p-1 backdrop-blur-sm glow-green" style={{ boxShadow: '0 0 80px hsl(90 85% 45% / 0.08), 0 25px 50px -12px rgb(0 0 0 / 0.5)' }}>
       {/* Scanning line animation */}
       <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none z-10">
         <div className="h-8 w-full bg-gradient-to-b from-primary/5 to-transparent animate-scan-line" />

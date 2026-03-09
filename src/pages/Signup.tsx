@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Zap, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import Logo from "@/components/Logo";
 import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
@@ -33,8 +34,8 @@ const Signup = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background bg-grid px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <Zap className="h-7 w-7 text-primary" />
+          <div className="mx-auto mb-4">
+            <Logo size="lg" className="mx-auto" />
           </div>
           <h1 className="mb-2 text-2xl font-bold text-foreground">Check your email</h1>
           <p className="text-sm text-muted-foreground">
@@ -53,9 +54,7 @@ const Signup = () => {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary glow-green-sm">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <Logo size="lg" />
             <span className="text-xl font-bold text-foreground">
               GoalPulse<span className="text-primary"> AI</span>
             </span>

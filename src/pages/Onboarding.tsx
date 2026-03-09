@@ -8,7 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Zap, ArrowRight, ArrowLeft, Globe, Bell, Sliders, Trophy, Search, SkipForward } from "lucide-react";
+import { ArrowRight, ArrowLeft, Globe, Bell, Sliders, Trophy, Search, SkipForward } from "lucide-react";
+import Logo from "@/components/Logo";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -216,9 +217,7 @@ const Onboarding = () => {
       <div className="w-full max-w-lg">
         <div className="mb-6 flex items-center justify-between">
           <div className="inline-flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary glow-green-sm">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <Logo size="sm" />
             <span className="text-lg font-bold text-foreground">GoalPulse<span className="text-primary"> AI</span></span>
           </div>
           <button
