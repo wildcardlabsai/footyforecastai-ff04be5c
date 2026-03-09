@@ -42,7 +42,7 @@ const HotMatchesPanel = ({ matches, predictions }: Props) => {
           hotMatches.map((m) => {
             const pred = predictions.get(m.id)!;
             return (
-              <div key={m.id} className="px-4 py-3 hover:bg-secondary/10 transition-colors">
+              <div key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="px-4 py-3 hover:bg-secondary/10 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs text-muted-foreground">{m.league}</div>
