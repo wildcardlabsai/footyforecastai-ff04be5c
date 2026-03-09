@@ -163,17 +163,17 @@ const Analytics = () => {
             <h3 className="text-sm font-semibold text-foreground mb-4">Hourly Distribution</h3>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={hourlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 14%, 16%)" />
-                <XAxis dataKey="hour" tick={{ fill: 'hsl(220, 10%, 55%)', fontSize: 9 }} interval={3} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'hsl(220, 10%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <RechartsTooltip contentStyle={{ background: 'hsl(220, 18%, 7%)', border: '1px solid hsl(220, 14%, 16%)', borderRadius: 8, fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
+                <XAxis dataKey="hour" tick={{ ...CHART_TICK, fontSize: 9 }} interval={3} axisLine={false} tickLine={false} />
+                <YAxis tick={CHART_TICK} axisLine={false} tickLine={false} />
+                <RechartsTooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <defs>
                   <linearGradient id="alertGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(151, 100%, 50%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(151, 100%, 50%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor={CHART_COLORS.primary} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="alerts" stroke="hsl(151, 100%, 50%)" fill="url(#alertGrad)" strokeWidth={2} name="Alerts" />
+                <Area type="monotone" dataKey="alerts" stroke={CHART_COLORS.primary} fill="url(#alertGrad)" strokeWidth={2} name="Alerts" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
