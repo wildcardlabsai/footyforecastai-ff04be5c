@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,12 +39,16 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
-            Log In
-          </Button>
-          <Button size="sm" className="glow-green-sm font-semibold">
-            Start Free
-          </Button>
+          <Link to="/login">
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+              Log In
+            </Button>
+          </Link>
+          <Link to="/signup">
+            <Button size="sm" className="glow-green-sm font-semibold">
+              Start Free
+            </Button>
+          </Link>
         </div>
 
         <button
@@ -74,12 +79,16 @@ const Navbar = () => {
                 </a>
               ))}
               <div className="flex gap-2 pt-2">
-                <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground">
-                  Log In
-                </Button>
-                <Button size="sm" className="flex-1 glow-green-sm font-semibold">
-                  Start Free
-                </Button>
+                <Link to="/login" className="flex-1">
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
+                    Log In
+                  </Button>
+                </Link>
+                <Link to="/signup" className="flex-1">
+                  <Button size="sm" className="w-full glow-green-sm font-semibold">
+                    Start Free
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
