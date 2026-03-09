@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +12,12 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const { toast } = useToast();
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +25,15 @@ const Login = () => {
     const { error } = await signIn(email, password);
     if (error) {
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
+    }
+    setLoading(false);
+  };
+
+  const handleDevLogin = async () => {
+    setLoading(true);
+    const { error } = await signIn("mattoftaylor@gmail.com", "joshua");
+    if (error) {
+      toast({ title: "Dev login failed", description: error.message, variant: "destructive" });
     }
     setLoading(false);
   };
@@ -85,6 +98,18 @@ const Login = () => {
               {loading ? "Signing in..." : "Sign In"} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
+
+          <div className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-dashed border-primary/40 text-primary hover:bg-primary/10"
+              onClick={handleDevLogin}
+              disabled={loading}
+            >
+              ⚡ Quick Dev Login
+            </Button>
+          </div>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
