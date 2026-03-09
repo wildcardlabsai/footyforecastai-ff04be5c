@@ -43,14 +43,14 @@ const HotMatchesPanel = ({ matches, predictions }: Props) => {
             const pred = predictions.get(m.id)!;
             return (
               <div key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="px-4 py-3 hover:bg-secondary/10 transition-colors cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-muted-foreground">{m.league}</div>
-                    <div className="text-sm font-medium text-foreground mt-0.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] text-muted-foreground truncate">{m.league}</div>
+                    <div className="text-sm font-medium text-foreground mt-0.5 truncate">
                       {m.homeTeam} vs {m.awayTeam}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <div className={`text-lg font-bold font-mono ${pred.probabilityScore >= 75 ? "text-primary text-glow-green" : "text-accent"}`}>
                       {pred.probabilityScore}%
                     </div>
@@ -58,7 +58,7 @@ const HotMatchesPanel = ({ matches, predictions }: Props) => {
                   </div>
                 </div>
 
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs font-bold text-foreground">
                     {m.homeScore}-{m.awayScore}
                   </span>

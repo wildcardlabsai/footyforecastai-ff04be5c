@@ -4,6 +4,7 @@ import StatsWidgets from "@/components/dashboard/StatsWidgets";
 import LiveMatchTable from "@/components/dashboard/LiveMatchTable";
 import HotMatchesPanel from "@/components/dashboard/HotMatchesPanel";
 import RecentAlerts from "@/components/dashboard/RecentAlerts";
+import WatchedGamesPanel from "@/components/dashboard/WatchedGamesPanel";
 import { getDemoMatches, getDemoAlerts, getDemoStats, DemoMatch } from "@/services/demoData";
 import { runPredictions, PredictionResult } from "@/services/predictionEngine";
 
@@ -39,7 +40,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout liveMatchCount={liveCount}>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <StatsWidgets stats={stats} />
 
         {/* Refresh indicator */}
@@ -48,11 +49,13 @@ const Dashboard = () => {
           Auto-refreshing · Last updated {lastUpdated.toLocaleTimeString()}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
+        {/* Main content grid - stacks on mobile */}
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <LiveMatchTable matches={matches} predictions={predictions} />
           </div>
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
+            <WatchedGamesPanel matches={matches} predictions={predictions} />
             <HotMatchesPanel matches={matches} predictions={predictions} />
             <RecentAlerts alerts={alerts} />
           </div>
