@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
-import { Target, TrendingUp, Bell, BarChart3, Clock, Zap } from "lucide-react";
+import { Target, TrendingUp, Bell, BarChart3, Clock, Sliders } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart, Tooltip as RechartsTooltip } from "recharts";
+import { CHART_COLORS, CHART_TOOLTIP_STYLE, CHART_TICK } from "@/lib/chartTheme";
 
 const Analytics = () => {
   // Demo analytics data
