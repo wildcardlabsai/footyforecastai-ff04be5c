@@ -1,0 +1,114 @@
+import { DemoMatch } from "@/services/demoData";
+import { PredictionResult } from "@/services/predictionEngine";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, AlertTriangle, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
+
+interface Props {
+  matches: DemoMatch[];
+  predictions: Map<string, PredictionResult>;
+}
+
+const getConfBadge = (conf: string) => {
+  switch (conf) {
+    case 'very_high': return <Badge className="bg-primary/20 text-primary border-primary/30 glow-green-sm text-[10px]">Very High</Badge>;
+    case 'high': return <Badge className="bg-accent/20 text-accent border-accent/30 text-[10px]">High</Badge>;
+    case 'medium': return <Badge className="bg-warning/20 text-warning border-warning/30 text-[10px]">Medium</Badge>;
+    default: return <Badge variant="outline" className="text-muted-foreground text-[10px]">Low</Badge>;
+  }
+};
+
+const LiveMatchTable = ({ matches, predictions }: Props) => {
+  // Sort by probability score descending
+  const sorted = [...matches].sort((a, b) => {
+    const pa = predictions.get(a.id)?.probabilityScore || 0;
+    const pb = predictions.get(b.id)?.probabilityScore || 0;
+    return pb - pa;
+  });
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h3 className="text-sm font-semibold text-foreground">Live Matches</h3>
+        <Link to="/live-matches" className="text-xs text-primary hover:underline flex items-center gap-1">
+          View all <Eye className="h-3 w-3" />
+        </Link>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-border/50 text-muted-foreground">
+              <th className="px-4 py-2 text-left font-medium">League</th>
+              <th className="px-4 py-2 text-left font-medium">Match</th>
+              <th className="px-4 py-2 text-center font-medium">Score</th>
+              <th className="px-4 py-2 text-center font-medium">Min</th>
+              <th className="px-4 py-2 text-center font-medium">SOT</th>
+              <th className="px-4 py-2 text-center font-medium">DA</th>
+              <th className="px-4 py-2 text-center font-medium">Prob.</th>
+              <th className="px-4 py-2 text-center font-medium">Conf.</th>
+              <th className="px-4 py-2 text-center font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((m) => {
+              const pred = predictions.get(m.id);
+              const prob = pred?.probabilityScore || 0;
+              const isHot = pred?.triggerStatus;
+              return (
+                <tr
+                  key={m.id}
+                  className={`border-b border-border/20 transition-colors hover:bg-secondary/20 ${isHot ? "bg-primary/[0.03]" : ""}`}
+                >
+                  <td className="px-4 py-2.5 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
+                  <td className="px-4 py-2.5 font-medium text-foreground whitespace-nowrap">
+                    {m.homeTeam} vs {m.awayTeam}
+                  </td>
+                  <td className="px-4 py-2.5 text-center font-mono font-bold text-foreground">
+                    {m.homeScore}-{m.awayScore}
+                  </td>
+                  <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                    {m.status === 'halftime' ? 'HT' : `${m.minute}'`}
+                  </td>
+                  <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                    {m.stats.homeShotsOnTarget + m.stats.awayShotsOnTarget}
+                  </td>
+                  <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                    {m.stats.homeDangerousAttacks + m.stats.awayDangerousAttacks}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className={`font-mono font-bold ${prob >= 70 ? "text-primary" : prob >= 50 ? "text-accent" : "text-muted-foreground"}`}>
+                      {prob}%
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {pred && getConfBadge(pred.confidence)}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {isHot ? (
+                      <div className="flex items-center justify-center gap-1 text-primary">
+                        <TrendingUp className="h-3 w-3" />
+                        <span className="text-[10px] font-semibold">HOT</span>
+                      </div>
+                    ) : pred && pred.probabilityScore >= 50 ? (
+                      <div className="flex items-center justify-center gap-1 text-accent">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span className="text-[10px]">WATCH</span>
+                      </div>
+                    ) : m.status === 'halftime' ? (
+                      <span className="text-[10px] text-muted-foreground">HT</span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default LiveMatchTable;
