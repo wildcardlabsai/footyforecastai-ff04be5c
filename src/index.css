@@ -22,7 +22,7 @@
     --secondary-foreground: 180 10% 92%;
 
     --muted: 220 14% 14%;
-    --muted-foreground: 220 10% 50%;
+    --muted-foreground: 220 10% 55%;
 
     --accent: 191 100% 50%;
     --accent-foreground: 220 20% 4%;
@@ -55,6 +55,8 @@
     --warning-foreground: 0 0% 0%;
     --success: 151 100% 40%;
     --success-foreground: 0 0% 0%;
+    --watch: 30 100% 50%;
+    --watch-foreground: 0 0% 0%;
   }
 }
 
@@ -132,5 +134,10 @@
   .bg-dots {
     background-image: radial-gradient(circle, hsl(220 14% 20%) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(151 100% 50% / 0.2), hsl(191 100% 50% / 0.2), transparent);
   }
 }
