@@ -77,7 +77,18 @@ const LiveMatches = () => {
     );
     if (status === 'halftime') return <span className="text-[10px] font-semibold text-warning">HT</span>;
     if (status === 'finished') return <span className="text-[10px] text-muted-foreground">FT</span>;
-    return <span className="text-[10px] text-muted-foreground">Scheduled</span>;
+    return <span className="text-[10px] text-muted-foreground">{matchDate ? formatMatchTime(matchDate) : 'Scheduled'}</span>;
+  };
+
+  const formatMatchTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const isTomorrow = d.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return `Today ${time}`;
+    if (isTomorrow) return `Tom ${time}`;
+    return `${d.toLocaleDateString([], { day: 'numeric', month: 'short' })} ${time}`;
   };
 
   return (
