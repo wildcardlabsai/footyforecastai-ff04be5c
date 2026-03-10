@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const LEAGUE_IDS = new Set([39, 40, 41, 42, 2, 3, 848, 78, 140, 135, 61]);
+const LEAGUE_IDS = new Set([39, 2, 3, 848, 140, 78, 135]);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

@@ -31,10 +31,10 @@ const LeaguesSection = () => {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            <span className="text-primary">11</span> Leagues. Global Coverage.
+            <span className="text-primary">7</span> Leagues. Global Coverage.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            From England's top four tiers to Europe's elite competitions. FootyForecast covers them all with equal analytical depth.
+            Europe's top leagues and elite competitions. FootyForecast covers them all with equal analytical depth.
           </p>
         </motion.div>
 
