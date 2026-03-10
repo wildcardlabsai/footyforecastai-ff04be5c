@@ -3,6 +3,7 @@ import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Lock, Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const getConfDot = (conf: number) => {
   if (conf >= 80) return "bg-primary";
