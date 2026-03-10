@@ -1,1 +1,7 @@
 project_id = "fhyiimhxfoegvfvkpzzf"
+
+[functions.fetch-live-matches]
+verify_jwt = false
+
+[functions.fetch-odds]
+verify_jwt = false
