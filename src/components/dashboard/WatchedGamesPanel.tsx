@@ -1,4 +1,4 @@
-import { DemoMatch } from "@/services/demoData";
+import { MatchData } from "@/types/match";
 import { PredictionResult } from "@/services/predictionEngine";
 import { Eye, EyeOff, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
