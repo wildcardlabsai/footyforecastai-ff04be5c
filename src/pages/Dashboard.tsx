@@ -5,11 +5,13 @@ import LiveMatchTable from "@/components/dashboard/LiveMatchTable";
 import HotMatchesPanel from "@/components/dashboard/HotMatchesPanel";
 import WatchedGamesPanel from "@/components/dashboard/WatchedGamesPanel";
 import { useLiveMatches, usePredictions } from "@/hooks/useLiveMatches";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { LiveMatch } from "@/services/liveDataService";
 import { Loader2, WifiOff } from "lucide-react";
 
 const Dashboard = () => {
   const { data: matches = [], isLoading, error, dataUpdatedAt } = useLiveMatches(30000);
+  const { data: allPredictions = [] } = usePredictionsData();
   const predictions = usePredictions(matches);
   const [watchedIds, setWatchedIds] = useState<Set<string>>(() => new Set());
 
@@ -25,12 +27,13 @@ const Dashboard = () => {
   const liveCount = matches.filter((m: LiveMatch) => m.status === 'live').length;
   const hotCount = Array.from(predictions.values()).filter(p => p.probabilityScore >= 62).length;
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt) : new Date();
+  const uniqueLeagues = new Set(allPredictions.map(p => p.league)).size;
 
   const stats = {
     liveMatches: liveCount,
     hotMatches: hotCount,
-    alertsToday: 0,
-    predictionAccuracy: 73,
+    alertsToday: allPredictions.length,
+    predictionAccuracy: uniqueLeagues,
   };
 
   const adaptedMatches = matches.map((m: LiveMatch) => ({
