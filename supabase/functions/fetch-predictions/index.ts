@@ -24,9 +24,9 @@ serve(async (req) => {
   const apiHeaders = { 'x-apisports-key': API_KEY };
 
   try {
-    // Build date range: today + next 3 days
+    // Free plan: only today + tomorrow allowed
     const dates: string[] = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       const d = new Date(Date.now() + i * 86400000);
       dates.push(d.toISOString().split('T')[0]);
     }
