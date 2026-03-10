@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { DemoMatch } from "@/services/demoData";
+import { MatchData } from "@/types/match";
 import { PredictionResult } from "@/services/predictionEngine";
 import { TrendingUp, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
