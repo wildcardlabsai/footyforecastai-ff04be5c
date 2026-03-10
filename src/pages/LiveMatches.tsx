@@ -1,38 +1,92 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { useLiveMatches, usePredictions } from "@/hooks/useLiveMatches";
+import { useLiveMatches } from "@/hooks/useLiveMatches";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Loader2, WifiOff } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const LiveMatches = () => {
   const navigate = useNavigate();
-  const { data: matches = [], isLoading, error } = useLiveMatches(30000);
-  const predictions = usePredictions(matches);
+  const { data: liveMatches = [], isLoading: liveLoading, error: liveError } = useLiveMatches(30000);
+  const { data: predictions = [], isLoading: predLoading } = usePredictionsData();
   const [search, setSearch] = useState("");
   const [leagueFilter, setLeagueFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const leagues = [...new Set(matches.map(m => m.league))].sort();
-  const liveCount = matches.filter(m => m.status === 'live').length;
+  const isLoading = liveLoading && predLoading;
+  const error = liveError;
 
-  let filtered = matches.filter(m => {
+  // Merge: live matches first, then today's scheduled/finished from predictions
+  const today = new Date().toISOString().split('T')[0];
+  const liveIds = new Set(liveMatches.map(m => m.id));
+  const todayPredictions = predictions
+    .filter(p => p.matchDate?.startsWith(today) && !liveIds.has(p.id))
+    .map(p => ({
+      id: p.id,
+      fixtureId: Number(p.id),
+      league: p.league,
+      leagueLogo: p.leagueLogo,
+      homeTeam: p.homeTeam,
+      awayTeam: p.awayTeam,
+      homeLogo: p.homeLogo,
+      awayLogo: p.awayLogo,
+      homeScore: p.homeScore,
+      awayScore: p.awayScore,
+      minute: p.minute || 0,
+      status: p.status as 'live' | 'finished' | 'halftime' | 'scheduled',
+      predictedResult: p.predictedResult,
+      confidence: p.confidence,
+    }));
+
+  const allMatches = [
+    ...liveMatches.map(m => ({
+      ...m,
+      predictedResult: undefined as string | undefined,
+      confidence: undefined as number | undefined,
+    })),
+    ...todayPredictions,
+  ];
+
+  const leagues = [...new Set(allMatches.map(m => m.league))].sort();
+  const liveCount = allMatches.filter(m => m.status === 'live').length;
+
+  let filtered = allMatches.filter(m => {
     if (search) {
       const q = search.toLowerCase();
       if (!m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q) && !m.league.toLowerCase().includes(q)) return false;
     }
     if (leagueFilter !== "all" && m.league !== leagueFilter) return false;
+    if (statusFilter !== "all" && m.status !== statusFilter) return false;
     return true;
   });
+
+  // Sort: live first, then scheduled, then finished
+  const statusOrder: Record<string, number> = { live: 0, halftime: 1, scheduled: 2, finished: 3 };
+  filtered.sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
+
+  const getStatusBadge = (status: string, minute: number) => {
+    if (status === 'live') return (
+      <div className="flex items-center gap-1 text-primary">
+        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
+        <span className="text-[10px] font-semibold">LIVE {minute}'</span>
+      </div>
+    );
+    if (status === 'halftime') return <span className="text-[10px] font-semibold text-warning">HT</span>;
+    if (status === 'finished') return <span className="text-[10px] text-muted-foreground">FT</span>;
+    return <span className="text-[10px] text-muted-foreground">Scheduled</span>;
+  };
 
   return (
     <DashboardLayout liveMatchCount={liveCount}>
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Live Matches</h1>
-            <p className="text-xs text-muted-foreground mt-1">{liveCount} matches live · Auto-refreshing every 30s</p>
+            <h1 className="text-xl font-bold text-foreground">Live & Today</h1>
+            <p className="text-xs text-muted-foreground mt-1">{liveCount} live · {allMatches.length} total today · Auto-refreshing</p>
           </div>
           <div className="flex items-center gap-2">
             {isLoading ? (
@@ -52,10 +106,19 @@ const LiveMatches = () => {
             <Input placeholder="Search teams or leagues..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm bg-card border-border" />
           </div>
           <Select value={leagueFilter} onValueChange={setLeagueFilter}>
-            <SelectTrigger className="w-[180px] h-9 text-xs bg-card border-border"><Filter className="h-3 w-3 mr-1" /><SelectValue placeholder="All Leagues" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px] h-9 text-xs bg-card border-border"><Filter className="h-3 w-3 mr-1" /><SelectValue placeholder="All Leagues" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Leagues</SelectItem>
               {leagues.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[140px] h-9 text-xs bg-card border-border"><SelectValue placeholder="All Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="live">Live</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="finished">Finished</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -64,51 +127,69 @@ const LiveMatches = () => {
           <div className="flex items-center justify-center p-12">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ) : error ? (
+        ) : error && allMatches.length === 0 ? (
           <div className="rounded-xl border border-destructive/30 bg-card p-8 text-center text-sm text-destructive">
-            Failed to load live matches. Retrying...
+            Failed to load matches. Retrying...
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-border/50 text-muted-foreground">
-                    <th className="px-4 py-3 text-left font-medium">League</th>
-                    <th className="px-4 py-3 text-left font-medium">Match</th>
-                    <th className="px-4 py-3 text-center font-medium">Score</th>
-                    <th className="px-4 py-3 text-center font-medium">Min</th>
-                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">xG</th>
-                    <th className="px-4 py-3 text-center font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(m => (
-                    <tr key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer">
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
-                      <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{m.homeTeam} vs {m.awayTeam}</td>
-                      <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{m.homeScore}-{m.awayScore}</td>
-                      <td className="px-4 py-3 text-center font-mono text-muted-foreground">{m.status === 'halftime' ? 'HT' : m.status === 'finished' ? 'FT' : `${m.minute}'`}</td>
-                      <td className="px-4 py-3 text-center font-mono text-muted-foreground hidden sm:table-cell">{(m.stats.homeXg + m.stats.awayXg).toFixed(1)}</td>
-                      <td className="px-4 py-3 text-center">
-                        {m.status === 'live' ? (
-                          <div className="flex items-center justify-center gap-1 text-primary">
-                            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
-                            <span className="text-[10px] font-semibold">LIVE</span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground">{m.status === 'halftime' ? 'HT' : 'FT'}</span>
-                        )}
-                      </td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border/50 text-muted-foreground">
+                      <th className="px-4 py-3 text-left font-medium">League</th>
+                      <th className="px-4 py-3 text-left font-medium">Home</th>
+                      <th className="px-4 py-3 text-center font-medium">Score</th>
+                      <th className="px-4 py-3 text-left font-medium">Away</th>
+                      <th className="px-4 py-3 text-center font-medium">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filtered.map(m => (
+                      <tr key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer">
+                        <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
+                        <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={m.homeTeam} logo={m.homeLogo} /></td>
+                        <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{m.homeScore}-{m.awayScore}</td>
+                        <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={m.awayTeam} logo={m.awayLogo} /></td>
+                        <td className="px-4 py-3 text-center">{getStatusBadge(m.status, m.minute)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {filtered.length === 0 && (
+                <div className="p-8 text-center text-sm text-muted-foreground">No matches found. Check back during match times.</div>
+              )}
             </div>
-            {filtered.length === 0 && (
-              <div className="p-8 text-center text-sm text-muted-foreground">No live matches at the moment. Check back during match times.</div>
-            )}
-          </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {filtered.length === 0 && (
+                <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">No matches found. Check back during match times.</div>
+              )}
+              {filtered.map(m => (
+                <div key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:border-border/80 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] text-muted-foreground">{m.league}</span>
+                    {getStatusBadge(m.status, m.minute)}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-foreground truncate"><TeamBadge name={m.homeTeam} logo={m.homeLogo} size={16} /></div>
+                    </div>
+                    <div className="text-center shrink-0 px-3">
+                      <div className="text-lg font-mono font-bold text-foreground">{m.homeScore} - {m.awayScore}</div>
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="text-sm font-semibold text-foreground flex justify-end"><TeamBadge name={m.awayTeam} logo={m.awayLogo} size={16} /></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </DashboardLayout>
