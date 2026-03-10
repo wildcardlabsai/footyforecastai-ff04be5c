@@ -186,7 +186,7 @@ const LiveMatches = () => {
                 <div key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:border-border/80 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] text-muted-foreground">{m.league}</span>
-                    {getStatusBadge(m.status, m.minute)}
+                    {getStatusBadge(m.status, m.minute, m.matchDate)}
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
