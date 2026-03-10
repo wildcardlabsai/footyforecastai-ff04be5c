@@ -32,7 +32,7 @@ const GoalsMarket = () => {
         {items.map(d => (
           <div key={d.matchId} className="rounded-xl border border-border bg-card p-4 hover:border-border/80 transition-colors">
             <div className="text-[10px] text-muted-foreground mb-1">{d.league}</div>
-            <div className="text-sm font-semibold text-foreground">{d.homeTeam} vs {d.awayTeam}</div>
+            <div className="text-sm font-semibold text-foreground flex items-center gap-1 flex-wrap"><TeamBadge name={d.homeTeam} logo={d.homeLogo} size={16} /> <span className="text-muted-foreground">vs</span> <TeamBadge name={d.awayTeam} logo={d.awayLogo} size={16} /></div>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-xs text-muted-foreground">{label}</span>
               <span className={`font-mono font-bold ${d[valueKey] >= 70 ? 'text-primary' : d[valueKey] >= 50 ? 'text-accent' : 'text-muted-foreground'}`}>

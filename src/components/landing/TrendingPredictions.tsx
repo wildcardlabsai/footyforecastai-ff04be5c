@@ -53,8 +53,8 @@ const TrendingPredictions = () => {
                   </Badge>
                 </div>
 
-                <div className="text-sm font-semibold text-foreground">
-                  {p.homeTeam} vs {p.awayTeam}
+                <div className="text-sm font-semibold text-foreground flex items-center gap-1 flex-wrap">
+                  <TeamBadge name={p.homeTeam} logo={p.homeLogo} size={16} /> <span className="text-muted-foreground">vs</span> <TeamBadge name={p.awayTeam} logo={p.awayLogo} size={16} />
                 </div>
 
                 <div className="mt-3 space-y-2">

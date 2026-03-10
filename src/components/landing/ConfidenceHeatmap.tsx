@@ -61,7 +61,7 @@ const ConfidenceHeatmap = () => {
                     <tr key={p.id} className={`border-b border-border/20 transition-colors hover:bg-secondary/20 ${i >= 3 ? 'opacity-40 blur-[2px] select-none' : ''}`}>
                       <td className="px-4 py-3">
                         <div className="text-[10px] text-muted-foreground">{p.league}</div>
-                        <div className="font-medium text-foreground">{p.homeTeam} vs {p.awayTeam}</div>
+                        <div className="font-medium text-foreground flex items-center gap-1 flex-wrap"><TeamBadge name={p.homeTeam} logo={p.homeLogo} size={16} /> <span className="text-muted-foreground">vs</span> <TeamBadge name={p.awayTeam} logo={p.awayLogo} size={16} /></div>
                       </td>
                       <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
                       <td className="px-4 py-3 text-center">
