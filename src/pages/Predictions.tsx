@@ -62,14 +62,14 @@ const Predictions = () => {
             <Input placeholder="Search teams or leagues..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 h-9 text-sm bg-card border-border" />
           </div>
           <Select value={leagueFilter} onValueChange={setLeagueFilter}>
-            <SelectTrigger className="w-[180px] h-9 text-xs bg-card border-border"><Filter className="h-3 w-3 mr-1" /><SelectValue placeholder="All Leagues" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px] h-9 text-xs bg-card border-border"><Filter className="h-3 w-3 mr-1" /><SelectValue placeholder="All Leagues" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Leagues</SelectItem>
               {leagues.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={confFilter} onValueChange={setConfFilter}>
-            <SelectTrigger className="w-[150px] h-9 text-xs bg-card border-border"><SelectValue placeholder="All Confidence" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[150px] h-9 text-xs bg-card border-border"><SelectValue placeholder="All Confidence" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Confidence</SelectItem>
               <SelectItem value="high">High</SelectItem>
@@ -88,52 +88,106 @@ const Predictions = () => {
             Failed to load predictions. Please try again later.
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-border/50 text-muted-foreground">
-                    <th className="px-4 py-3 text-left font-medium">
-                      <button onClick={() => handleSort('league')} className="flex items-center gap-1 hover:text-foreground">League <ArrowUpDown className="h-3 w-3" /></button>
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium">Home</th>
-                    <th className="px-4 py-3 text-left font-medium">Away</th>
-                    <th className="px-4 py-3 text-center font-medium">Prediction</th>
-                    <th className="px-4 py-3 text-center font-medium">
-                      <button onClick={() => handleSort('confidence')} className="flex items-center gap-1 hover:text-foreground mx-auto">Conf. <ArrowUpDown className="h-3 w-3" /></button>
-                    </th>
-                    <th className="px-4 py-3 text-center font-medium">Score</th>
-                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">BTTS</th>
-                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">O2.5</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(p => (
-                    <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
-                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.league}</td>
-                      <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.homeTeam} logo={p.homeLogo} /></td>
-                      <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.awayTeam} logo={p.awayLogo} /></td>
-                      <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
-                          {getConfBadge(p.confidenceLevel)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{p.predictedScore}</td>
-                      <td className="px-4 py-3 text-center hidden sm:table-cell">
-                        <span className={`font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{p.bttsResult}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center hidden sm:table-cell font-mono text-muted-foreground">{p.over25Prob}%</td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border/50 text-muted-foreground">
+                      <th className="px-4 py-3 text-left font-medium">
+                        <button onClick={() => handleSort('league')} className="flex items-center gap-1 hover:text-foreground">League <ArrowUpDown className="h-3 w-3" /></button>
+                      </th>
+                      <th className="px-4 py-3 text-left font-medium">Home</th>
+                      <th className="px-4 py-3 text-left font-medium">Away</th>
+                      <th className="px-4 py-3 text-center font-medium">Prediction</th>
+                      <th className="px-4 py-3 text-center font-medium">
+                        <button onClick={() => handleSort('confidence')} className="flex items-center gap-1 hover:text-foreground mx-auto">Conf. <ArrowUpDown className="h-3 w-3" /></button>
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium">Score</th>
+                      <th className="px-4 py-3 text-center font-medium">BTTS</th>
+                      <th className="px-4 py-3 text-center font-medium">O2.5</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filtered.map(p => (
+                      <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
+                        <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.league}</td>
+                        <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.homeTeam} logo={p.homeLogo} /></td>
+                        <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.awayTeam} logo={p.awayLogo} /></td>
+                        <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
+                            {getConfBadge(p.confidenceLevel)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{p.predictedScore}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{p.bttsResult}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center font-mono text-muted-foreground">{p.over25Prob}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {filtered.length === 0 && (
+                <div className="p-8 text-center text-sm text-muted-foreground">No predictions match your filters.</div>
+              )}
             </div>
-            {filtered.length === 0 && (
-              <div className="p-8 text-center text-sm text-muted-foreground">No predictions match your filters.</div>
-            )}
-          </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {filtered.length === 0 && (
+                <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">No predictions match your filters.</div>
+              )}
+              {filtered.map(p => (
+                <div key={p.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground">{p.league}</span>
+                    {getConfBadge(p.confidenceLevel)}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-foreground truncate"><TeamBadge name={p.homeTeam} logo={p.homeLogo} size={16} /></div>
+                    </div>
+                    <div className="text-center shrink-0 px-2">
+                      <div className="text-lg font-mono font-bold text-foreground">{p.predictedScore}</div>
+                      <div className="text-[10px] text-muted-foreground">predicted</div>
+                    </div>
+                    <div className="flex-1 min-w-0 text-right">
+                      <div className="text-sm font-semibold text-foreground truncate flex justify-end"><TeamBadge name={p.awayTeam} logo={p.awayLogo} size={16} /></div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
+                    <div className="text-center">
+                      <div className="text-[10px] text-muted-foreground">Result</div>
+                      <div className="text-xs font-medium text-foreground">{p.predictedResult}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-[10px] text-muted-foreground">BTTS</div>
+                      <div className={`text-xs font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{p.bttsResult}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-[10px] text-muted-foreground">O2.5</div>
+                      <div className="text-xs font-mono text-muted-foreground">{p.over25Prob}%</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-muted-foreground">Confidence</span>
+                    <span className={`font-mono font-bold text-xs ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                    <div className={`h-full rounded-full ${p.confidence >= 80 ? 'bg-primary' : p.confidence >= 60 ? 'bg-accent' : 'bg-muted-foreground'}`} style={{ width: `${p.confidence}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         <p className="text-[10px] text-muted-foreground text-center">
