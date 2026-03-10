@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const TrendingPredictions = () => {
   const { data: allPredictions = [], isLoading } = usePredictionsData();
