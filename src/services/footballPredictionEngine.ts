@@ -17,6 +17,7 @@ export interface MatchPrediction {
   id: string;
   league: string;
   leagueCountry?: string;
+  leagueLogo?: string;
   homeTeam: string;
   awayTeam: string;
   homeLogo?: string;
