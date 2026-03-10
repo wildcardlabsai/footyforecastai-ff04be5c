@@ -12,6 +12,8 @@ const GoalsMarket = () => {
     league: p.league,
     homeTeam: p.homeTeam,
     awayTeam: p.awayTeam,
+    homeLogo: p.homeLogo,
+    awayLogo: p.awayLogo,
     over25Prob: p.over25Prob,
     over35Prob: p.over35Prob,
     bttsProb: p.bttsProb,
