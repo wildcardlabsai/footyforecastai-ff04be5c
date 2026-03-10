@@ -3,6 +3,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const UpsetWatch = () => {
   const { data: predictions = [], isLoading, error } = usePredictionsData();
