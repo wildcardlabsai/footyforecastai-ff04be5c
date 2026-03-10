@@ -14,9 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
 const LEAGUES = [
-  "Premier League", "Championship", "League One", "League Two",
-  "Champions League", "Europa League", "Conference League",
-  "Bundesliga", "La Liga", "Serie A", "Ligue 1",
+  "Premier League", "Champions League", "Europa League", "Conference League",
+  "La Liga", "Bundesliga", "Serie A",
 ];
 
 const TIMEZONES = [

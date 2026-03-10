@@ -140,6 +140,24 @@ export type Database = {
           },
         ]
       }
+      cached_predictions: {
+        Row: {
+          fetched_at: string
+          id: string
+          predictions_data: Json
+        }
+        Insert: {
+          fetched_at?: string
+          id?: string
+          predictions_data?: Json
+        }
+        Update: {
+          fetched_at?: string
+          id?: string
+          predictions_data?: Json
+        }
+        Relationships: []
+      }
       leagues: {
         Row: {
           active: boolean | null

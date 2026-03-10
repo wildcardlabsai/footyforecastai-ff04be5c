@@ -6,7 +6,7 @@ export function usePredictionsData() {
   return useQuery<MatchPrediction[]>({
     queryKey: ['predictions'],
     queryFn: fetchPredictions,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
     retry: 2,
   });
 }
