@@ -4,6 +4,7 @@ import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { Target, BarChart3, TrendingUp, Zap, Loader2 } from "lucide-react";
 import { MatchPrediction } from "@/services/footballPredictionEngine";
+import TeamBadge from "@/components/TeamBadge";
 
 const PickCard = ({ p }: { p: MatchPrediction }) => (
   <div className="rounded-xl border border-border bg-card p-4 hover:border-border/80 transition-colors">
@@ -15,7 +16,7 @@ const PickCard = ({ p }: { p: MatchPrediction }) => (
         'bg-secondary text-muted-foreground border-border'
       }`}>{p.confidence}%</Badge>
     </div>
-    <div className="text-sm font-semibold text-foreground">{p.homeTeam} vs {p.awayTeam}</div>
+    <div className="text-sm font-semibold text-foreground flex items-center gap-1 flex-wrap"><TeamBadge name={p.homeTeam} logo={p.homeLogo} size={16} /> <span className="text-muted-foreground">vs</span> <TeamBadge name={p.awayTeam} logo={p.awayLogo} size={16} /></div>
     <div className="mt-2 flex items-center justify-between text-xs">
       <span className="text-muted-foreground">Prediction</span>
       <span className="font-medium text-foreground">{p.predictedResult} ({p.predictedScore})</span>

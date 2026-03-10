@@ -3,6 +3,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const UpsetWatch = () => {
   const { data: predictions = [], isLoading, error } = usePredictionsData();
@@ -49,7 +50,7 @@ const UpsetWatch = () => {
                       <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
                         <td className="px-4 py-3">
                           <div className="text-[10px] text-muted-foreground">{p.league}</div>
-                          <div className="font-medium text-foreground">{p.homeTeam} vs {p.awayTeam}</div>
+                          <div className="font-medium text-foreground flex items-center gap-1 flex-wrap"><TeamBadge name={p.homeTeam} logo={p.homeLogo} size={16} /> <span className="text-muted-foreground">vs</span> <TeamBadge name={p.awayTeam} logo={p.awayLogo} size={16} /></div>
                         </td>
                         <td className="px-4 py-3 text-center font-medium text-warning">{underdog}</td>
                         <td className="px-4 py-3 text-center">

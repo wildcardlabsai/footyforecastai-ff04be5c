@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, ArrowUpDown, Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const getConfBadge = (level: string) => {
   switch (level) {
@@ -110,8 +111,8 @@ const Predictions = () => {
                   {filtered.map(p => (
                     <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
                       <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.league}</td>
-                      <td className="px-4 py-3 font-medium text-foreground">{p.homeTeam}</td>
-                      <td className="px-4 py-3 font-medium text-foreground">{p.awayTeam}</td>
+                      <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.homeTeam} logo={p.homeLogo} /></td>
+                      <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.awayTeam} logo={p.awayLogo} /></td>
                       <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-2">
