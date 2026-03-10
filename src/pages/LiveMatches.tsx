@@ -166,7 +166,7 @@ const LiveMatches = () => {
                         <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={m.homeTeam} logo={m.homeLogo} /></td>
                         <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{m.homeScore}-{m.awayScore}</td>
                         <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={m.awayTeam} logo={m.awayLogo} /></td>
-                        <td className="px-4 py-3 text-center">{getStatusBadge(m.status, m.minute)}</td>
+                        <td className="px-4 py-3 text-center">{getStatusBadge(m.status, m.minute, m.matchDate)}</td>
                       </tr>
                     ))}
                   </tbody>
