@@ -1,5 +1,5 @@
 // FootyForecast — Shared match types
-import { MatchStats } from './predictionEngine';
+import { MatchStats } from '@/services/predictionEngine';
 
 export interface MatchData {
   id: string;
