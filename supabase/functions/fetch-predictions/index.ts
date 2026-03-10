@@ -40,7 +40,9 @@ serve(async (req) => {
     );
 
     const allFixtures = fixtureResponses.flatMap(r => r.response || []);
+    console.log(`Total fixtures fetched: ${allFixtures.length}`);
     const filtered = allFixtures.filter((f: any) => LEAGUE_IDS.includes(f.league.id));
+    console.log(`Filtered to target leagues: ${filtered.length}`);
     const limited = filtered.slice(0, 30);
 
     // Fetch predictions for each fixture
