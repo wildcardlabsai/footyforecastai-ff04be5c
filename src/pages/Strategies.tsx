@@ -57,7 +57,7 @@ const defaultStrategies: Strategy[] = [
   },
 ];
 
-const LEAGUES = ['Premier League', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1', 'Champions League', 'Eredivisie', 'Primeira Liga', 'MLS', 'Turkish Süper Lig', 'Brasileiro Série A'];
+const LEAGUES = ['Premier League', 'Championship', 'League One', 'League Two', 'Champions League', 'Europa League', 'Conference League', 'Bundesliga', 'La Liga', 'Serie A', 'Ligue 1'];
 
 const Strategies = () => {
   const [strategies, setStrategies] = useState<Strategy[]>(defaultStrategies);

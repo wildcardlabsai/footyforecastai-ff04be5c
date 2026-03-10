@@ -1,11 +1,11 @@
-import { DemoMatch } from "@/services/demoData";
+import { MatchData } from "@/types/match";
 import { PredictionResult } from "@/services/predictionEngine";
 import { Eye, EyeOff, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
-  matches: DemoMatch[];
+  matches: MatchData[];
   predictions: Map<string, PredictionResult>;
   watchedIds: Set<string>;
   onToggleWatch: (id: string) => void;

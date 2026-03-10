@@ -1,10 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { getDemoPredictions } from "@/services/demoPredictions";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
+import { LEAGUE_NAMES } from "@/services/leagues";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown } from "lucide-react";
+import { Search, Filter, ArrowUpDown, Loader2 } from "lucide-react";
 
 const getConfBadge = (level: string) => {
   switch (level) {
@@ -15,7 +16,7 @@ const getConfBadge = (level: string) => {
 };
 
 const Predictions = () => {
-  const predictions = useMemo(() => getDemoPredictions(), []);
+  const { data: predictions = [], isLoading, error } = usePredictionsData();
   const [search, setSearch] = useState("");
   const [leagueFilter, setLeagueFilter] = useState("all");
   const [confFilter, setConfFilter] = useState("all");
@@ -49,7 +50,9 @@ const Predictions = () => {
       <div className="space-y-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">Predictions</h1>
-          <p className="text-xs text-muted-foreground mt-1">{predictions.length} matches predicted · Updated daily</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {isLoading ? 'Loading...' : `${predictions.length} matches predicted · Real-time data`}
+          </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -75,52 +78,62 @@ const Predictions = () => {
           </Select>
         </div>
 
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground">
-                  <th className="px-4 py-3 text-left font-medium">
-                    <button onClick={() => handleSort('league')} className="flex items-center gap-1 hover:text-foreground">League <ArrowUpDown className="h-3 w-3" /></button>
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium">Home</th>
-                  <th className="px-4 py-3 text-left font-medium">Away</th>
-                  <th className="px-4 py-3 text-center font-medium">Prediction</th>
-                  <th className="px-4 py-3 text-center font-medium">
-                    <button onClick={() => handleSort('confidence')} className="flex items-center gap-1 hover:text-foreground mx-auto">Conf. <ArrowUpDown className="h-3 w-3" /></button>
-                  </th>
-                  <th className="px-4 py-3 text-center font-medium">Score</th>
-                  <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">BTTS</th>
-                  <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">O2.5</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(p => (
-                  <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
-                    <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.league}</td>
-                    <td className="px-4 py-3 font-medium text-foreground">{p.homeTeam}</td>
-                    <td className="px-4 py-3 font-medium text-foreground">{p.awayTeam}</td>
-                    <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
-                        {getConfBadge(p.confidenceLevel)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{p.predictedScore}</td>
-                    <td className="px-4 py-3 text-center hidden sm:table-cell">
-                      <span className={`font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{p.bttsResult}</span>
-                    </td>
-                    <td className="px-4 py-3 text-center hidden sm:table-cell font-mono text-muted-foreground">{p.over25Prob}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {isLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-          {filtered.length === 0 && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No predictions match your filters.</div>
-          )}
-        </div>
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/30 bg-card p-8 text-center text-sm text-destructive">
+            Failed to load predictions. Please try again later.
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground">
+                    <th className="px-4 py-3 text-left font-medium">
+                      <button onClick={() => handleSort('league')} className="flex items-center gap-1 hover:text-foreground">League <ArrowUpDown className="h-3 w-3" /></button>
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium">Home</th>
+                    <th className="px-4 py-3 text-left font-medium">Away</th>
+                    <th className="px-4 py-3 text-center font-medium">Prediction</th>
+                    <th className="px-4 py-3 text-center font-medium">
+                      <button onClick={() => handleSort('confidence')} className="flex items-center gap-1 hover:text-foreground mx-auto">Conf. <ArrowUpDown className="h-3 w-3" /></button>
+                    </th>
+                    <th className="px-4 py-3 text-center font-medium">Score</th>
+                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">BTTS</th>
+                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">O2.5</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(p => (
+                    <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
+                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.league}</td>
+                      <td className="px-4 py-3 font-medium text-foreground">{p.homeTeam}</td>
+                      <td className="px-4 py-3 font-medium text-foreground">{p.awayTeam}</td>
+                      <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
+                          {getConfBadge(p.confidenceLevel)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{p.predictedScore}</td>
+                      <td className="px-4 py-3 text-center hidden sm:table-cell">
+                        <span className={`font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{p.bttsResult}</span>
+                      </td>
+                      <td className="px-4 py-3 text-center hidden sm:table-cell font-mono text-muted-foreground">{p.over25Prob}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {filtered.length === 0 && (
+              <div className="p-8 text-center text-sm text-muted-foreground">No predictions match your filters.</div>
+            )}
+          </div>
+        )}
 
         <p className="text-[10px] text-muted-foreground text-center">
           Predictions are for informational purposes only. Not financial advice.

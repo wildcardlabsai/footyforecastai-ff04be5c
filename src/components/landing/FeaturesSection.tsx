@@ -67,8 +67,8 @@ const features = [
   },
   {
     icon: Globe,
-    title: "12+ Leagues Covered",
-    description: "From the Premier League to the Champions League. Major European leagues with equal analytical depth.",
+    title: "11 Leagues Covered",
+    description: "From England's top four tiers to Europe's elite competitions. Every league analysed with equal depth.",
     size: "small" as const,
   },
   {

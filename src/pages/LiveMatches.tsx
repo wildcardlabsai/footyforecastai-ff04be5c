@@ -1,43 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { getDemoMatches, DemoMatch } from "@/services/demoData";
-import { runPredictions, PredictionResult } from "@/services/predictionEngine";
+import { useLiveMatches, usePredictions } from "@/hooks/useLiveMatches";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown } from "lucide-react";
-
-const getConfBadge = (conf: string) => {
-  switch (conf) {
-    case 'very_high': return <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px]">Very High</Badge>;
-    case 'high': return <Badge className="bg-accent/20 text-accent border-accent/30 text-[10px]">High</Badge>;
-    case 'medium': return <Badge className="bg-warning/20 text-warning border-warning/30 text-[10px]">Medium</Badge>;
-    default: return <Badge variant="outline" className="text-muted-foreground text-[10px]">Low</Badge>;
-  }
-};
+import { Search, Filter, Loader2, WifiOff } from "lucide-react";
 
 const LiveMatches = () => {
   const navigate = useNavigate();
-  const [matches, setMatches] = useState<DemoMatch[]>([]);
-  const [predictions, setPredictions] = useState<Map<string, PredictionResult>>(new Map());
+  const { data: matches = [], isLoading, error } = useLiveMatches(30000);
+  const predictions = usePredictions(matches);
   const [search, setSearch] = useState("");
   const [leagueFilter, setLeagueFilter] = useState("all");
-
-  useEffect(() => {
-    const update = () => {
-      const demoMatches = getDemoMatches();
-      setMatches(demoMatches);
-      const allStats = demoMatches.filter(m => m.status === 'live').map(m => m.stats);
-      const results = runPredictions(allStats);
-      const predMap = new Map<string, PredictionResult>();
-      results.forEach(r => predMap.set(r.matchId, r));
-      setPredictions(predMap);
-    };
-    update();
-    const interval = setInterval(update, 4000);
-    return () => clearInterval(interval);
-  }, []);
 
   const leagues = [...new Set(matches.map(m => m.league))].sort();
   const liveCount = matches.filter(m => m.status === 'live').length;
@@ -57,10 +32,16 @@ const LiveMatches = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-bold text-foreground">Live Matches</h1>
-            <p className="text-xs text-muted-foreground mt-1">{liveCount} matches live · Auto-refreshing</p>
+            <p className="text-xs text-muted-foreground mt-1">{liveCount} matches live · Auto-refreshing every 30s</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+            {isLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+            ) : error ? (
+              <WifiOff className="h-3 w-3 text-destructive" />
+            ) : (
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
+            )}
             <span className="text-xs font-mono text-primary">LIVE</span>
           </div>
         </div>
@@ -79,46 +60,56 @@ const LiveMatches = () => {
           </Select>
         </div>
 
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground">
-                  <th className="px-4 py-3 text-left font-medium">League</th>
-                  <th className="px-4 py-3 text-left font-medium">Match</th>
-                  <th className="px-4 py-3 text-center font-medium">Score</th>
-                  <th className="px-4 py-3 text-center font-medium">Min</th>
-                  <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">xG</th>
-                  <th className="px-4 py-3 text-center font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(m => (
-                  <tr key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer">
-                    <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
-                    <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{m.homeTeam} vs {m.awayTeam}</td>
-                    <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{m.homeScore}-{m.awayScore}</td>
-                    <td className="px-4 py-3 text-center font-mono text-muted-foreground">{m.status === 'halftime' ? 'HT' : m.status === 'finished' ? 'FT' : `${m.minute}'`}</td>
-                    <td className="px-4 py-3 text-center font-mono text-muted-foreground hidden sm:table-cell">{(m.stats.homeXg + m.stats.awayXg).toFixed(1)}</td>
-                    <td className="px-4 py-3 text-center">
-                      {m.status === 'live' ? (
-                        <div className="flex items-center justify-center gap-1 text-primary">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
-                          <span className="text-[10px] font-semibold">LIVE</span>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground">{m.status === 'halftime' ? 'HT' : 'FT'}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {isLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-          {filtered.length === 0 && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No matches found.</div>
-          )}
-        </div>
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/30 bg-card p-8 text-center text-sm text-destructive">
+            Failed to load live matches. Retrying...
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground">
+                    <th className="px-4 py-3 text-left font-medium">League</th>
+                    <th className="px-4 py-3 text-left font-medium">Match</th>
+                    <th className="px-4 py-3 text-center font-medium">Score</th>
+                    <th className="px-4 py-3 text-center font-medium">Min</th>
+                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">xG</th>
+                    <th className="px-4 py-3 text-center font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(m => (
+                    <tr key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="border-b border-border/20 transition-colors hover:bg-secondary/20 cursor-pointer">
+                      <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{m.league}</td>
+                      <td className="px-4 py-3 font-medium text-foreground whitespace-nowrap">{m.homeTeam} vs {m.awayTeam}</td>
+                      <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{m.homeScore}-{m.awayScore}</td>
+                      <td className="px-4 py-3 text-center font-mono text-muted-foreground">{m.status === 'halftime' ? 'HT' : m.status === 'finished' ? 'FT' : `${m.minute}'`}</td>
+                      <td className="px-4 py-3 text-center font-mono text-muted-foreground hidden sm:table-cell">{(m.stats.homeXg + m.stats.awayXg).toFixed(1)}</td>
+                      <td className="px-4 py-3 text-center">
+                        {m.status === 'live' ? (
+                          <div className="flex items-center justify-center gap-1 text-primary">
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
+                            <span className="text-[10px] font-semibold">LIVE</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">{m.status === 'halftime' ? 'HT' : 'FT'}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {filtered.length === 0 && (
+              <div className="p-8 text-center text-sm text-muted-foreground">No live matches at the moment. Check back during match times.</div>
+            )}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
