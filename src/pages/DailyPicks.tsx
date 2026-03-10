@@ -4,6 +4,7 @@ import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { Target, BarChart3, TrendingUp, Zap, Loader2 } from "lucide-react";
 import { MatchPrediction } from "@/services/footballPredictionEngine";
+import TeamBadge from "@/components/TeamBadge";
 
 const PickCard = ({ p }: { p: MatchPrediction }) => (
   <div className="rounded-xl border border-border bg-card p-4 hover:border-border/80 transition-colors">
