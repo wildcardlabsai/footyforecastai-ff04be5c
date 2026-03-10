@@ -121,9 +121,9 @@ function mapBsdPrediction(pred: any) {
   if (pred.predicted_result === 'H') predictedResult = 'Home Win';
   else if (pred.predicted_result === 'A') predictedResult = 'Away Win';
 
-  // BSD confidence is 0-1 scale
-  const rawConf = pred.confidence || 0.5;
-  const confidence = rawConf > 1 ? Math.round(rawConf) : Math.round(rawConf * 100);
+  // BSD confidence: 0-1 scale → convert to percentage
+  const rawConf = pred.confidence ?? 0.5;
+  const confidence = rawConf <= 1 ? Math.round(rawConf * 100) : Math.round(rawConf);
   const confidenceLevel = confidence >= 80 ? 'high' : confidence >= 60 ? 'medium' : 'low';
 
   const predictedScore = pred.most_likely_score || '1-1';
