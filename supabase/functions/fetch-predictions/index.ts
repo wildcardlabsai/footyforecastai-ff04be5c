@@ -24,26 +24,47 @@ serve(async (req) => {
   const apiHeaders = { 'x-apisports-key': API_KEY };
 
   try {
-    // Fetch fixtures for today + next 2 days
+    // Build date range: today + next 3 days
     const dates: string[] = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       const d = new Date(Date.now() + i * 86400000);
       dates.push(d.toISOString().split('T')[0]);
     }
 
+    // Fetch fixtures by league (more reliable than by date)
+    // Use "from" and "to" params with season + league for efficiency
+    const season = new Date().getFullYear();
+    const fromDate = dates[0];
+    const toDate = dates[dates.length - 1];
+
+    console.log(`Fetching fixtures from ${fromDate} to ${toDate} for ${LEAGUE_IDS.length} leagues`);
+
+    // Batch leagues into groups to reduce calls
     const fixtureResponses = await Promise.all(
-      dates.map(date =>
-        fetch(`${BASE}/fixtures?date=${date}`, { headers: apiHeaders })
-          .then(r => r.json())
-          .catch(() => ({ response: [] }))
+      LEAGUE_IDS.map(leagueId =>
+        fetch(`${BASE}/fixtures?league=${leagueId}&season=${leagueId <= 42 ? season - 1 : season}&from=${fromDate}&to=${toDate}`, { headers: apiHeaders })
+          .then(async r => {
+            const data = await r.json();
+            if (data.errors && Object.keys(data.errors).length > 0) {
+              console.error(`API error for league ${leagueId}:`, JSON.stringify(data.errors));
+            }
+            return data;
+          })
+          .catch(e => {
+            console.error(`Fetch error for league ${leagueId}:`, e.message);
+            return { response: [] };
+          })
       )
     );
 
     const allFixtures = fixtureResponses.flatMap(r => r.response || []);
     console.log(`Total fixtures fetched: ${allFixtures.length}`);
-    const filtered = allFixtures.filter((f: any) => LEAGUE_IDS.includes(f.league.id));
-    console.log(`Filtered to target leagues: ${filtered.length}`);
-    const limited = filtered.slice(0, 30);
+
+    // Sort by date and take up to 30
+    allFixtures.sort((a: any, b: any) => 
+      new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
+    );
+    const limited = allFixtures.slice(0, 30);
 
     // Fetch predictions for each fixture
     const predictions = await Promise.all(
@@ -53,14 +74,24 @@ serve(async (req) => {
             `${BASE}/predictions?fixture=${fixture.fixture.id}`,
             { headers: apiHeaders }
           );
-          if (!res.ok) return mapFixture(fixture, null);
+          if (!res.ok) {
+            console.error(`Prediction API error for fixture ${fixture.fixture.id}: ${res.status}`);
+            return mapFixture(fixture, null);
+          }
           const data = await res.json();
+          if (data.errors && Object.keys(data.errors).length > 0) {
+            console.error(`Prediction API error for fixture ${fixture.fixture.id}:`, JSON.stringify(data.errors));
+            return mapFixture(fixture, null);
+          }
           return mapFixture(fixture, data.response?.[0] || null);
-        } catch {
+        } catch (e) {
+          console.error(`Prediction fetch error for fixture ${fixture.fixture.id}:`, (e as Error).message);
           return mapFixture(fixture, null);
         }
       })
     );
+
+    console.log(`Returning ${predictions.length} predictions`);
 
     return new Response(JSON.stringify({ predictions, count: predictions.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -112,11 +143,9 @@ function mapFixture(fixture: any, pred: any) {
     else if (apiWinner === teams.away.name) predictedResult = 'Away Win';
     else predictedResult = 'Draw';
   } else {
-    // Tie-break: if draw and another are equal, pick the non-draw
     if (homeWinProb > drawProb && homeWinProb >= awayWinProb) predictedResult = 'Home Win';
     else if (awayWinProb > drawProb && awayWinProb >= homeWinProb) predictedResult = 'Away Win';
-    else if (homeWinProb === awayWinProb && homeWinProb > drawProb) predictedResult = 'Home Win'; // home advantage
-    // else stays Draw
+    else if (homeWinProb === awayWinProb && homeWinProb > drawProb) predictedResult = 'Home Win';
   }
 
   // Extract comparison data
@@ -140,7 +169,7 @@ function mapFixture(fixture: any, pred: any) {
     0.30 * awayAtt + 0.20 * awayDef + 0.15 * awayForm +
     0.10 * 0.4 + 0.10 * (1 - h2hHome) + 0.15 * awayPoissonStr;
 
-  // Goals prediction - use actual probabilities + comparison data
+  // Goals market calculations
   const attackPower = homeAtt + awayAtt;
   const defWeakness = 2 - (homeDef + awayDef);
   const goalFactor = attackPower * 0.6 + defWeakness * 0.4;
@@ -149,24 +178,21 @@ function mapFixture(fixture: any, pred: any) {
   const over35Prob = Math.round(Math.min(80, Math.max(5, goalFactor * 35 - 5)));
   const bttsProb = Math.round(Math.min(88, Math.max(12, homeAtt * awayAtt * 200 + defWeakness * 15)));
 
-  // Predicted score - use win probabilities and attack strength to vary
+  // Predicted score
   let homeGoals: number, awayGoals: number;
 
   if (hasApiPrediction) {
-    // Use probabilities to drive score prediction
     const expectedHomeGoals = homeWinProb / 100 * 2.2 + homeAtt * 1.5 + (1 - awayDef) * 0.6;
     const expectedAwayGoals = awayWinProb / 100 * 2.2 + awayAtt * 1.5 + (1 - homeDef) * 0.6;
 
     homeGoals = Math.max(0, Math.round(expectedHomeGoals - 0.5));
     awayGoals = Math.max(0, Math.round(expectedAwayGoals - 0.5));
 
-    // Ensure score aligns with predicted result
     if (predictedResult === 'Home Win' && homeGoals <= awayGoals) {
       homeGoals = awayGoals + 1;
     } else if (predictedResult === 'Away Win' && awayGoals <= homeGoals) {
       awayGoals = homeGoals + 1;
     } else if (predictedResult === 'Draw') {
-      // Pick the lower of the two for a draw
       const avg = Math.round((homeGoals + awayGoals) / 2);
       homeGoals = avg;
       awayGoals = avg;
