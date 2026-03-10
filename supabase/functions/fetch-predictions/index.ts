@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const LEAGUE_IDS = new Set([39, 2, 3, 848, 140, 78, 135]);
+const BASE = 'https://sports.bzzoiro.com/api';
 const CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 serve(async (req) => {
@@ -18,11 +18,10 @@ serve(async (req) => {
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  // Check if this is a forced refresh (from cron) or normal request
   let forceRefresh = false;
   try {
     const body = await req.json().catch(() => ({}));
-    forceRefresh = body?.force === true || body?.time != null; // cron sends {time: ...}
+    forceRefresh = body?.force === true || body?.time != null;
   } catch { /* ignore */ }
 
   try {
@@ -44,74 +43,37 @@ serve(async (req) => {
       }
     }
 
-    // Fetch fresh data from API-Football
-    const API_KEY = Deno.env.get('API_FOOTBALL_KEY');
+    const API_KEY = Deno.env.get('BSD_API_KEY');
     if (!API_KEY) {
-      return new Response(JSON.stringify({ error: 'API_FOOTBALL_KEY not configured' }), {
+      return new Response(JSON.stringify({ error: 'BSD_API_KEY not configured' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const BASE = 'https://v3.football.api-sports.io';
-    const apiHeaders = { 'x-apisports-key': API_KEY };
+    const apiHeaders = { 'Authorization': `Token ${API_KEY}` };
 
-    // Fetch fixtures for today + tomorrow
-    const dates: string[] = [];
-    for (let i = 0; i < 2; i++) {
-      const d = new Date(Date.now() + i * 86400000);
-      dates.push(d.toISOString().split('T')[0]);
+    // Fetch all upcoming predictions from BSD (paginated)
+    let allResults: any[] = [];
+    let url: string | null = `${BASE}/predictions/`;
+
+    while (url && allResults.length < 100) {
+      console.log(`Fetching: ${url}`);
+      const res = await fetch(url, { headers: apiHeaders });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`BSD API error [${res.status}]: ${errText}`);
+        throw new Error(`BSD API error: ${res.status}`);
+      }
+      const data = await res.json();
+      allResults = allResults.concat(data.results || []);
+      url = data.next;
     }
-    console.log(`Fetching fixtures for dates: ${dates.join(', ')}`);
 
-    const fixtureResponses = await Promise.all(
-      dates.map(async date => {
-        try {
-          const res = await fetch(`${BASE}/fixtures?date=${date}`, { headers: apiHeaders });
-          const data = await res.json();
-          if (data.errors && Object.keys(data.errors).length > 0) {
-            console.error(`API error for date ${date}:`, JSON.stringify(data.errors));
-            return { response: [] };
-          }
-          console.log(`Date ${date}: ${(data.response || []).length} fixtures`);
-          return data;
-        } catch (e) {
-          console.error(`Fetch error for date ${date}:`, (e as Error).message);
-          return { response: [] };
-        }
-      })
-    );
+    console.log(`Fetched ${allResults.length} predictions from BSD`);
 
-    const allFixtures = fixtureResponses.flatMap(r => r.response || []);
-    const filtered = allFixtures.filter((f: any) => LEAGUE_IDS.has(f.league.id));
-    console.log(`Target league fixtures: ${filtered.length}`);
+    const predictions = allResults.map(mapBsdPrediction);
 
-    filtered.sort((a: any, b: any) =>
-      new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
-    );
-    const limited = filtered.slice(0, 20); // Trim to 20 to save API calls
-
-    const predictions = await Promise.all(
-      limited.map(async (fixture: any) => {
-        try {
-          const res = await fetch(`${BASE}/predictions?fixture=${fixture.fixture.id}`, { headers: apiHeaders });
-          if (!res.ok) {
-            console.error(`Prediction API ${res.status} for fixture ${fixture.fixture.id}`);
-            return mapFixture(fixture, null);
-          }
-          const data = await res.json();
-          if (data.errors && Object.keys(data.errors).length > 0) {
-            console.error(`Prediction error for ${fixture.fixture.id}:`, JSON.stringify(data.errors));
-            return mapFixture(fixture, null);
-          }
-          return mapFixture(fixture, data.response?.[0] || null);
-        } catch (e) {
-          console.error(`Prediction fetch error ${fixture.fixture.id}:`, (e as Error).message);
-          return mapFixture(fixture, null);
-        }
-      })
-    );
-
-    // Save to cache (delete old, insert new)
+    // Save to cache
     await supabase.from('cached_predictions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('cached_predictions').insert({
       predictions_data: predictions,
@@ -132,101 +94,104 @@ serve(async (req) => {
   }
 });
 
-function pct(s: string | undefined | null): number {
-  if (!s) return 0;
-  return parseInt(String(s).replace('%', '')) || 0;
-}
+function mapBsdPrediction(pred: any) {
+  const event = pred.event || {};
+  const league = event.league || {};
+  const homeTeamObj = event.home_team_obj;
+  const awayTeamObj = event.away_team_obj;
 
-function mapFixture(fixture: any, pred: any) {
-  const f = fixture.fixture;
-  const teams = fixture.teams;
-  const goals = fixture.goals;
-  const league = fixture.league;
+  const API_KEY = Deno.env.get('BSD_API_KEY') || '';
+  const IMG_BASE = 'https://sports.bzzoiro.com/img';
 
-  let homeWinProb = 33, drawProb = 34, awayWinProb = 33;
-  let hasApiPrediction = false;
+  const homeLogo = homeTeamObj?.api_id
+    ? `${IMG_BASE}/team/${homeTeamObj.api_id}/?token=${API_KEY}`
+    : undefined;
+  const awayLogo = awayTeamObj?.api_id
+    ? `${IMG_BASE}/team/${awayTeamObj.api_id}/?token=${API_KEY}`
+    : undefined;
+  const leagueLogo = league.api_id
+    ? `${IMG_BASE}/league/${league.api_id}/?token=${API_KEY}`
+    : undefined;
 
-  if (pred?.predictions?.percent) {
-    const h = pct(pred.predictions.percent.home);
-    const d = pct(pred.predictions.percent.draw);
-    const a = pct(pred.predictions.percent.away);
-    if (h + d + a > 0) {
-      homeWinProb = h; drawProb = d; awayWinProb = a;
-      hasApiPrediction = true;
-    }
-  }
+  const homeWinProb = Math.round(pred.prob_home_win || 33);
+  const drawProb = Math.round(pred.prob_draw || 34);
+  const awayWinProb = Math.round(pred.prob_away_win || 33);
 
-  const apiWinner = pred?.predictions?.winner?.name || null;
   let predictedResult = 'Draw';
-  if (apiWinner) {
-    if (apiWinner === teams.home.name) predictedResult = 'Home Win';
-    else if (apiWinner === teams.away.name) predictedResult = 'Away Win';
-    else predictedResult = 'Draw';
-  } else {
-    if (homeWinProb > drawProb && homeWinProb >= awayWinProb) predictedResult = 'Home Win';
-    else if (awayWinProb > drawProb && awayWinProb >= homeWinProb) predictedResult = 'Away Win';
-    else if (homeWinProb === awayWinProb && homeWinProb > drawProb) predictedResult = 'Home Win';
-  }
+  if (pred.predicted_result === 'H') predictedResult = 'Home Win';
+  else if (pred.predicted_result === 'A') predictedResult = 'Away Win';
 
-  const comp = pred?.comparison || {};
-  const homeAtt = pct(comp.att?.home) / 100 || 0.5;
-  const awayAtt = pct(comp.att?.away) / 100 || 0.5;
-  const homeDef = pct(comp.def?.home) / 100 || 0.5;
-  const awayDef = pct(comp.def?.away) / 100 || 0.5;
-  const homeForm = pct(comp.form?.home) / 100 || 0.5;
-  const awayForm = pct(comp.form?.away) / 100 || 0.5;
-  const h2hHome = pct(comp.h2h?.home) / 100 || 0.5;
-  const homePoissonStr = pct(comp.poisson_distribution?.home) / 100 || 0.5;
-  const awayPoissonStr = pct(comp.poisson_distribution?.away) / 100 || 0.5;
-
-  const homeTeamScore = 0.30 * homeAtt + 0.20 * homeDef + 0.15 * homeForm + 0.10 * 0.6 + 0.10 * h2hHome + 0.15 * homePoissonStr;
-  const awayTeamScore = 0.30 * awayAtt + 0.20 * awayDef + 0.15 * awayForm + 0.10 * 0.4 + 0.10 * (1 - h2hHome) + 0.15 * awayPoissonStr;
-
-  const attackPower = homeAtt + awayAtt;
-  const defWeakness = 2 - (homeDef + awayDef);
-  const goalFactor = attackPower * 0.6 + defWeakness * 0.4;
-
-  const over25Prob = Math.round(Math.min(92, Math.max(15, goalFactor * 50 + 5)));
-  const over35Prob = Math.round(Math.min(80, Math.max(5, goalFactor * 35 - 5)));
-  const bttsProb = Math.round(Math.min(88, Math.max(12, homeAtt * awayAtt * 200 + defWeakness * 15)));
-
-  let homeGoals: number, awayGoals: number;
-  if (hasApiPrediction) {
-    const expectedHomeGoals = homeWinProb / 100 * 2.2 + homeAtt * 1.5 + (1 - awayDef) * 0.6;
-    const expectedAwayGoals = awayWinProb / 100 * 2.2 + awayAtt * 1.5 + (1 - homeDef) * 0.6;
-    homeGoals = Math.max(0, Math.round(expectedHomeGoals - 0.5));
-    awayGoals = Math.max(0, Math.round(expectedAwayGoals - 0.5));
-    if (predictedResult === 'Home Win' && homeGoals <= awayGoals) homeGoals = awayGoals + 1;
-    else if (predictedResult === 'Away Win' && awayGoals <= homeGoals) awayGoals = homeGoals + 1;
-    else if (predictedResult === 'Draw') { const avg = Math.round((homeGoals + awayGoals) / 2); homeGoals = avg; awayGoals = avg; }
-  } else { homeGoals = 1; awayGoals = 1; }
-
-  const probs = [homeWinProb, drawProb, awayWinProb].sort((a, b) => b - a);
-  const gap = probs[0] - probs[1];
-  const confidence = Math.round(Math.min(95, Math.max(35, gap * 1.5 + 40)));
+  const confidence = Math.round((pred.confidence || 0.5) * 100);
   const confidenceLevel = confidence >= 80 ? 'high' : confidence >= 60 ? 'medium' : 'low';
+
+  const predictedScore = pred.most_likely_score || '1-1';
+  const [homeGoals, awayGoals] = predictedScore.split('-').map(Number);
+
+  const over25Prob = Math.round(pred.prob_over_25 || 50);
+  const over35Prob = Math.round(pred.prob_over_35 || 25);
+  const bttsProb = Math.round(pred.prob_btts_yes || 50);
 
   const isUpset =
     (predictedResult === 'Away Win' && awayWinProb < 35) ||
-    (predictedResult === 'Home Win' && homeWinProb < 35) ||
-    (gap < 5 && predictedResult !== 'Draw');
+    (predictedResult === 'Home Win' && homeWinProb < 35);
 
-  const statusShort = f.status?.short || 'NS';
-  const isLive = ['1H', '2H', 'ET', 'BT', 'P'].includes(statusShort);
-  const isHT = statusShort === 'HT';
-  const isFT = ['FT', 'AET', 'PEN'].includes(statusShort);
+  const statusMap: Record<string, string> = {
+    'notstarted': 'scheduled',
+    'inprogress': 'live',
+    '1st_half': 'live',
+    '2nd_half': 'live',
+    'halftime': 'halftime',
+    'finished': 'finished',
+  };
 
-  const reasoning = pred?.predictions?.advice || 'Model analysis based on team form, attack and defence metrics.';
+  const eventStatus = event.status || 'notstarted';
+  const status = statusMap[eventStatus] || 'scheduled';
+
+  // Build reasoning from recommendations
+  const tips: string[] = [];
+  if (pred.favorite_recommend) tips.push(`Favored: ${predictedResult}`);
+  if (pred.over_25_recommend) tips.push('Over 2.5 recommended');
+  if (pred.btts_recommend) tips.push('BTTS recommended');
+  if (pred.over_35_recommend) tips.push('Over 3.5 recommended');
+  const reasoning = tips.length > 0
+    ? tips.join('. ') + '.'
+    : `ML model prediction: ${predictedResult} (${confidence}% confidence)`;
+
+  // Compute team scores from probabilities
+  const homeTeamScore = (homeWinProb / 100) * 0.7 + (pred.expected_home_goals || 1) / 4 * 0.3;
+  const awayTeamScore = (awayWinProb / 100) * 0.7 + (pred.expected_away_goals || 1) / 4 * 0.3;
 
   return {
-    id: String(f.id), fixtureId: f.id, league: league.name, leagueCountry: league.country, leagueLogo: league.logo,
-    homeTeam: teams.home.name, awayTeam: teams.away.name, homeLogo: teams.home.logo, awayLogo: teams.away.logo,
-    matchDate: f.date, homeScore: goals?.home ?? 0, awayScore: goals?.away ?? 0,
-    homeWinProb, drawProb, awayWinProb, predictedResult, predictedScore: `${homeGoals}-${awayGoals}`,
-    confidence, confidenceLevel, over25Prob, over35Prob, bttsProb, bttsResult: bttsProb >= 50 ? 'Yes' : 'No',
-    isUpset, upsetConfidence: isUpset ? Math.round(confidence * 0.85) : undefined,
+    id: String(event.id || pred.id),
+    fixtureId: event.api_id || event.id,
+    league: league.name || 'Unknown',
+    leagueCountry: league.country || '',
+    leagueLogo,
+    homeTeam: event.home_team || 'Home',
+    awayTeam: event.away_team || 'Away',
+    homeLogo,
+    awayLogo,
+    matchDate: event.event_date,
+    homeScore: event.home_score ?? 0,
+    awayScore: event.away_score ?? 0,
+    homeWinProb,
+    drawProb,
+    awayWinProb,
+    predictedResult,
+    predictedScore,
+    confidence,
+    confidenceLevel,
+    over25Prob,
+    over35Prob,
+    bttsProb,
+    bttsResult: bttsProb >= 50 ? 'Yes' : 'No',
+    isUpset,
+    upsetConfidence: isUpset ? Math.round(confidence * 0.85) : undefined,
     riskLevel: isUpset ? (confidence < 50 ? 'High' : confidence < 65 ? 'Medium' : 'Low') as 'High' | 'Medium' | 'Low' : undefined,
-    reasoning, homeTeamScore, awayTeamScore, minute: f.status?.elapsed || 0,
-    status: isFT ? 'finished' : isHT ? 'halftime' : isLive ? 'live' : 'scheduled',
+    reasoning,
+    homeTeamScore,
+    awayTeamScore,
+    minute: event.current_minute || 0,
+    status,
   };
 }
