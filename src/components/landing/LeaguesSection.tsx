@@ -6,25 +6,17 @@ const leagues = [
   { name: "Bundesliga", flag: "🇩🇪" },
   { name: "Serie A", flag: "🇮🇹" },
   { name: "Ligue 1", flag: "🇫🇷" },
-  { name: "Eredivisie", flag: "🇳🇱" },
-  { name: "Primeira Liga", flag: "🇵🇹" },
   { name: "Champions League", flag: "🏆" },
   { name: "Europa League", flag: "🏆" },
-  { name: "MLS", flag: "🇺🇸" },
-  { name: "Brasileiro Série A", flag: "🇧🇷" },
-  { name: "Argentine Primera", flag: "🇦🇷" },
-  { name: "Saudi Pro League", flag: "🇸🇦" },
-  { name: "Turkish Süper Lig", flag: "🇹🇷" },
+  { name: "Eredivisie", flag: "🇳🇱" },
+  { name: "Primeira Liga", flag: "🇵🇹" },
   { name: "Scottish Premiership", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿" },
   { name: "Belgian Pro League", flag: "🇧🇪" },
-  { name: "Austrian Bundesliga", flag: "🇦🇹" },
-  { name: "Swiss Super League", flag: "🇨🇭" },
-  { name: "Danish Superliga", flag: "🇩🇰" },
-  { name: "J1 League", flag: "🇯🇵" },
+  { name: "Turkish Süper Lig", flag: "🇹🇷" },
 ];
 
-const row1 = leagues.slice(0, 10);
-const row2 = leagues.slice(10, 20);
+const row1 = leagues.slice(0, 6);
+const row2 = leagues.slice(6, 12);
 
 const MarqueeRow = ({ items, reverse = false }: { items: typeof leagues; reverse?: boolean }) => (
   <div className="group relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
@@ -53,10 +45,10 @@ const LeaguesSection = () => {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            <span className="text-primary">40+</span> Leagues. Global Coverage.
+            <span className="text-primary">12+</span> Leagues. Global Coverage.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            From Europe's elite to South America's passion leagues. GoalPulse scans them all with equal precision.
+            From Europe's elite leagues to continental competitions. FootyForecast covers them all with equal analytical depth.
           </p>
         </motion.div>
 

@@ -3,22 +3,22 @@ import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "GoalPulse caught 3 late goals in one evening that I would have completely missed. The Telegram alerts are instant and the explanations actually make sense.",
+    quote: "FootyForecast picked 4 out of 5 weekend results correctly. The confidence scoring really helps me focus on the strongest predictions.",
     name: "Marcus R.",
     role: "Football Analyst, London",
     stars: 5,
   },
   {
-    quote: "I've tried every prediction tool out there. GoalPulse is different — it doesn't try to predict everything, just the high-pressure moments. That focus is why it works.",
+    quote: "The goals market analysis is outstanding. I've been tracking their over 2.5 picks and the hit rate is genuinely impressive. Best free prediction tool I've used.",
     name: "Sofia L.",
     role: "Sports Data Enthusiast, Barcelona",
     stars: 5,
     featured: true,
   },
   {
-    quote: "The strategy builder is genius. I set up a 'second half equalizer' filter and my hit rate jumped to 78%. No other platform gives you this level of control.",
+    quote: "The upset watch section is brilliant. Caught the Nottingham Forest win against Chelsea and the reasoning was spot on. Data-driven and transparent.",
     name: "James K.",
-    role: "Pro Bettor, Melbourne",
+    role: "Football Fan, Melbourne",
     stars: 4,
   },
 ];
@@ -34,7 +34,7 @@ const TestimonialsSection = () => {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Trusted by Football Intelligence Enthusiasts
+            Trusted by Football Prediction Enthusiasts
           </h2>
         </motion.div>
 
@@ -54,10 +54,7 @@ const TestimonialsSection = () => {
                     : "border border-border bg-card/50 md:mt-4"
                 }`}
               >
-                {/* Decorative quote */}
                 <Quote className={`mb-3 h-6 w-6 ${isFeatured ? "text-primary/30" : "text-border"}`} />
-
-                {/* Star rating */}
                 <div className="mb-4 flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, si) => (
                     <Star
@@ -66,11 +63,9 @@ const TestimonialsSection = () => {
                     />
                   ))}
                 </div>
-
                 <p className={`leading-relaxed text-muted-foreground italic ${isFeatured ? "text-base" : "text-sm"}`}>
                   "{t.quote}"
                 </p>
-
                 <div className="mt-6 flex items-center gap-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold ${
                     isFeatured ? "bg-primary/15 text-primary" : "bg-primary/10 text-primary"

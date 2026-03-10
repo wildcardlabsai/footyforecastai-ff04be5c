@@ -2,6 +2,8 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorks from "@/components/landing/HowItWorks";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import TrendingPredictions from "@/components/landing/TrendingPredictions";
+import ConfidenceHeatmap from "@/components/landing/ConfidenceHeatmap";
 import LeaguesSection from "@/components/landing/LeaguesSection";
 import PricingSection from "@/components/landing/PricingSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
@@ -20,6 +22,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
+      <SectionDivider />
+      <TrendingPredictions />
+      <SectionDivider />
+      <ConfidenceHeatmap />
       <SectionDivider />
       <HowItWorks />
       <SectionDivider />

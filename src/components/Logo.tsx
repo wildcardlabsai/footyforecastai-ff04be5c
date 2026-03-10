@@ -15,7 +15,7 @@ const sizeMap = {
 const Logo = ({ size = "md", className }: LogoProps) => (
   <img
     src={logoSrc}
-    alt="GoalPulse AI"
+    alt="FootyForecast"
     className={cn(sizeMap[size], "object-contain", className)}
   />
 );

@@ -1,36 +1,30 @@
 import { motion } from "framer-motion";
-import { Radio, Brain, Bell, BarChart3 } from "lucide-react";
+import { Database, Brain, BarChart3 } from "lucide-react";
 
 const steps = [
   {
-    icon: Radio,
-    title: "Real-Time Match Scanning",
-    description: "GoalPulse continuously monitors hundreds of live matches, tracking shots, dangerous attacks, corners, possession shifts, and momentum changes every 60 seconds.",
+    icon: Database,
+    title: "Data Collection",
+    description: "We gather team form, expected goals (xG), shots, defensive stats, home/away records, and head-to-head data from every major league.",
     accent: "primary" as const,
   },
   {
     icon: Brain,
-    title: "Prediction Engine",
-    description: "Our rule-based scoring engine analyzes 12+ statistical factors per match to calculate a real-time goal probability score from 0–100.",
+    title: "Model Analysis",
+    description: "Our weighted statistical model calculates probabilities for match results, goals markets, BTTS, correct scores, and identifies value picks.",
     accent: "accent" as const,
-  },
-  {
-    icon: Bell,
-    title: "Telegram + Email Alerts",
-    description: "When a match crosses your probability threshold and shows multiple active signals, you get an instant alert with full context.",
-    accent: "primary" as const,
   },
   {
     icon: BarChart3,
-    title: "Track & Optimize",
-    description: "Review your alert history, track hit rates by league and confidence level, and fine-tune your strategies to maximize accuracy.",
-    accent: "accent" as const,
+    title: "Prediction Output",
+    description: "Results, goals markets, upset alerts, and confidence scores are generated for every fixture. Updated daily with the latest data.",
+    accent: "primary" as const,
   },
 ];
 
 const HowItWorks = () => {
   return (
-    <section id="features" className="relative py-24">
+    <section id="how-it-works" className="relative py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -39,24 +33,22 @@ const HowItWorks = () => {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            How <span className="text-primary">GoalPulse</span> Works
+            How <span className="text-primary">FootyForecast</span> Works
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            From raw match data to actionable alerts in seconds. Four steps, zero noise.
+            From raw data to actionable predictions in three simple steps.
           </p>
         </motion.div>
 
         {/* Desktop: horizontal timeline */}
         <div className="mt-20 hidden lg:block">
           <div className="relative">
-            {/* Connecting line */}
-            <div className="absolute top-[52px] left-[60px] right-[60px] h-px bg-border" />
-            {/* Animated pulse along line */}
-            <div className="absolute top-[51px] left-[60px] right-[60px] h-[3px] overflow-hidden">
+            <div className="absolute top-[52px] left-[120px] right-[120px] h-px bg-border" />
+            <div className="absolute top-[51px] left-[120px] right-[120px] h-[3px] overflow-hidden">
               <div className="absolute h-full w-8 rounded-full bg-gradient-to-r from-transparent via-primary/60 to-transparent animate-pulse-line" />
             </div>
 
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               {steps.map((step, i) => (
                 <motion.div
                   key={step.title}
@@ -66,8 +58,7 @@ const HowItWorks = () => {
                   transition={{ delay: i * 0.15 }}
                   className="relative flex flex-col items-center text-center"
                 >
-                  {/* Step number with gradient ring */}
-                  <div className={`relative z-10 flex h-[104px] w-[104px] items-center justify-center`}>
+                  <div className="relative z-10 flex h-[104px] w-[104px] items-center justify-center">
                     <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${step.accent === "primary" ? "from-primary/30 to-primary/5" : "from-accent/30 to-accent/5"} p-[2px]`}>
                       <div className="flex h-full w-full items-center justify-center rounded-full bg-background">
                         <div className={`flex h-16 w-16 items-center justify-center rounded-full ${step.accent === "primary" ? "bg-primary/10" : "bg-accent/10"}`}>
@@ -88,12 +79,10 @@ const HowItWorks = () => {
           </div>
         </div>
 
-        {/* Mobile: zigzag vertical timeline */}
+        {/* Mobile: vertical timeline */}
         <div className="mt-16 lg:hidden">
           <div className="relative space-y-8">
-            {/* Vertical line */}
             <div className="absolute left-6 top-0 bottom-0 w-px bg-border" />
-
             {steps.map((step, i) => (
               <motion.div
                 key={step.title}

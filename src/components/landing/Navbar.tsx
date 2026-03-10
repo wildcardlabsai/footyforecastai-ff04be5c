@@ -16,9 +16,9 @@ const Navbar = () => {
   }, []);
 
   const links = [
-    { label: "Features", href: "#features" },
+    { label: "Predictions", href: "#predictions" },
     { label: "Leagues", href: "#leagues" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "How It Works", href: "#how-it-works" },
     { label: "FAQ", href: "#faq" },
   ];
 
@@ -34,7 +34,7 @@ const Navbar = () => {
         <a href="/" className="flex items-center gap-2">
           <Logo size="sm" />
           <span className="text-lg font-bold tracking-tight text-foreground">
-            GoalPulse<span className="text-primary"> AI</span>
+            Footy<span className="text-primary">Forecast</span>
           </span>
         </a>
 
@@ -58,7 +58,7 @@ const Navbar = () => {
           </Link>
           <Link to="/signup">
             <Button size="sm" className="glow-green-sm font-semibold">
-              Start Free
+              Get Started Free
             </Button>
           </Link>
         </div>
@@ -98,7 +98,7 @@ const Navbar = () => {
                 </Link>
                 <Link to="/signup" className="flex-1">
                   <Button size="sm" className="w-full glow-green-sm font-semibold">
-                    Start Free
+                    Get Started Free
                   </Button>
                 </Link>
               </div>

@@ -9,32 +9,32 @@ import {
 
 const faqs = [
   {
-    q: "How does GoalPulse predict goals?",
-    a: "GoalPulse uses a 12-factor rule-based scoring engine that analyzes real-time match statistics including shots, shots on target, dangerous attacks, corners, possession trends, xG, momentum shifts, and game state. Alerts only trigger when multiple signals align simultaneously.",
+    q: "How does FootyForecast predict match results?",
+    a: "FootyForecast uses a 10-factor weighted statistical model that combines expected goals (xG), defensive xGA, shots on target, recent form, home advantage, head-to-head data, possession efficiency, and conversion rates to calculate match probabilities.",
   },
   {
-    q: "What is the prediction accuracy?",
-    a: "Our overall hit rate across all confidence levels is approximately 73%. High and Very High confidence alerts perform significantly better, with hit rates above 80% in many leagues.",
+    q: "What markets do you predict?",
+    a: "We generate predictions for match results (home/draw/away), correct scores, over/under 2.5 and 3.5 goals, BTTS (both teams to score), and identify upset picks and value opportunities.",
   },
   {
-    q: "Which leagues are supported?",
-    a: "GoalPulse currently covers 40+ leagues worldwide, including the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Champions League, MLS, Brasileiro Série A, and many more.",
+    q: "Which leagues are covered?",
+    a: "FootyForecast currently covers 12+ leagues including the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Champions League, Europa League, and several other major European competitions.",
   },
   {
-    q: "How do Telegram alerts work?",
-    a: "After connecting your Telegram account through our bot, you'll receive instant messages whenever a match in your watchlist crosses your configured probability threshold. Each alert includes the match details, probability score, active signals, and a brief explanation.",
+    q: "Is FootyForecast really free?",
+    a: "Yes, FootyForecast is 100% free. All predictions, all leagues, all markets — no paywall, no premium tier. We may introduce optional premium features in the future but the core platform will always remain free.",
   },
   {
-    q: "Can I customize when I receive alerts?",
-    a: "Absolutely. The Strategy Builder lets you configure minute ranges, minimum signal counts, probability thresholds, league filters, and cooldown windows. You can create multiple strategies and activate them independently.",
+    q: "What is the confidence score?",
+    a: "The confidence score reflects how strongly our model favours a particular outcome. It's derived from the probability gap between outcomes and model agreement across markets. High (80-100), Medium (60-79), and Low (40-59).",
   },
   {
-    q: "Is there a free plan?",
-    a: "Yes. The free plan includes 5 live match monitors, 3 alerts per day, and access to 2 leagues. It's a great way to experience GoalPulse before upgrading.",
+    q: "How accurate are the predictions?",
+    a: "Our model achieves approximately 68% accuracy on match result predictions across all confidence levels. High-confidence predictions perform significantly better. Predictions are informational only and should not be relied upon for financial decisions.",
   },
   {
-    q: "How often is match data updated?",
-    a: "The prediction engine processes each live match every 60 seconds, recalculating probability scores and checking for active signals in real time.",
+    q: "How often are predictions updated?",
+    a: "Predictions are updated daily as new match data becomes available. Live match predictions update in real time during games.",
   },
 ];
 
@@ -43,7 +43,6 @@ const FAQSection = () => {
     <section id="faq" className="py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.5fr] lg:items-start">
-          {/* Left column: heading + CTA */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -57,7 +56,7 @@ const FAQSection = () => {
               Can't find what you're looking for? Reach out and we'll get back to you within 24 hours.
             </p>
             <a
-              href="mailto:support@goalpulse.ai"
+              href="mailto:support@footyforecast.com"
               className="mt-6 inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
             >
               <Mail className="h-4 w-4" />
@@ -65,7 +64,6 @@ const FAQSection = () => {
             </a>
           </motion.div>
 
-          {/* Right column: accordion */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}

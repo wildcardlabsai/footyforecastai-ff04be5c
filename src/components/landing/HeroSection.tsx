@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Play, TrendingUp, Zap, Target, Radio } from "lucide-react";
+import { ArrowRight, BarChart3, TrendingUp, Zap, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCountUp } from "@/hooks/useCountUp";
 import { useRef } from "react";
@@ -8,19 +8,19 @@ import DashboardPreview from "./DashboardPreview";
 
 const floatingBadges = [
   {
-    text: "⚡ Arsenal 82% — Goal likely",
+    text: "⚡ Arsenal 82% — Home Win",
     position: "top-8 -left-4 lg:top-16 lg:-left-12",
     delay: 0,
     animation: "animate-float",
   },
   {
-    text: "🔥 3 signals active",
+    text: "🔥 Over 2.5 Goals — 78%",
     position: "top-1/3 -right-2 lg:-right-8",
     delay: 1.5,
     animation: "animate-float-slow",
   },
   {
-    text: "🎯 xG spike detected",
+    text: "🎯 BTTS Yes — 72%",
     position: "bottom-12 -left-2 lg:bottom-16 lg:-left-6",
     delay: 3,
     animation: "animate-float-slower",
@@ -28,9 +28,9 @@ const floatingBadges = [
 ];
 
 const HeroSection = () => {
-  const accuracy = useCountUp(73);
-  const alerts = useCountUp(2400);
-  const matches = useCountUp(180);
+  const accuracy = useCountUp(68);
+  const predictions = useCountUp(1247);
+  const leagues = useCountUp(12);
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -43,7 +43,6 @@ const HeroSection = () => {
 
   return (
     <section ref={sectionRef} className="relative min-h-screen overflow-hidden pt-16">
-      {/* Parallax background layers */}
       <motion.div style={{ y: bgY }} className="absolute inset-0 bg-grid opacity-30" />
       <motion.div
         style={{ scale: orbScale, opacity: orbOpacity }}
@@ -62,8 +61,8 @@ const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary"
           >
-            <Radio className="h-3 w-3 animate-pulse-glow" />
-            Live Football Intelligence Platform
+            <BarChart3 className="h-3 w-3" />
+            100% Free Football Prediction Platform
           </motion.div>
 
           <motion.h1
@@ -72,8 +71,8 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="max-w-4xl text-4xl font-black tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
           >
-            Spot Goal Pressure{" "}
-            <span className="text-primary text-glow-green">Before The Net Bulges</span>
+            Predict the Weekend{" "}
+            <span className="text-primary text-glow-green">Before It Happens</span>
           </motion.h1>
 
           <motion.p
@@ -82,9 +81,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl"
           >
-            GoalPulse scans live football matches and alerts you when a goal looks
-            likely within the next 15 minutes. Powered by real-time stats and
-            intelligent signal detection.
+            Data-driven football predictions for results, goals, BTTS and value picks across the world's biggest leagues.
           </motion.p>
 
           <motion.div
@@ -95,18 +92,18 @@ const HeroSection = () => {
           >
             <Link to="/signup">
               <Button size="lg" className="glow-green gap-2 px-8 text-base font-bold">
-                Start Free <ArrowRight className="h-4 w-4" />
+                View Today's Predictions <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link to="/dashboard">
+            <a href="#how-it-works">
               <Button
                 variant="outline"
                 size="lg"
                 className="gap-2 border-border px-8 text-base"
               >
-                <Play className="h-4 w-4" /> View Demo
+                <BarChart3 className="h-4 w-4" /> Explore the Model
               </Button>
-            </Link>
+            </a>
           </motion.div>
 
           {/* Stats bar */}
@@ -124,20 +121,20 @@ const HeroSection = () => {
                 Prediction Accuracy
               </div>
             </div>
-            <div className="text-center" ref={alerts.ref}>
+            <div className="text-center" ref={predictions.ref}>
               <div className="flex items-center justify-center gap-1 text-2xl font-bold text-accent sm:text-3xl">
-                <Zap className="h-5 w-5" /> {alerts.count >= 1000 ? `${(alerts.count / 1000).toFixed(1)}k` : alerts.count}
+                <Zap className="h-5 w-5" /> {predictions.count >= 1000 ? `${(predictions.count / 1000).toFixed(1)}k` : predictions.count}
               </div>
               <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                Alerts This Month
+                Matches Predicted
               </div>
             </div>
-            <div className="text-center" ref={matches.ref}>
+            <div className="text-center" ref={leagues.ref}>
               <div className="flex items-center justify-center gap-1 text-2xl font-bold text-foreground sm:text-3xl">
-                <Target className="h-5 w-5" /> {matches.count}+
+                <Target className="h-5 w-5" /> {leagues.count}
               </div>
               <div className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                Matches Scanned Daily
+                Leagues Covered
               </div>
             </div>
           </motion.div>
