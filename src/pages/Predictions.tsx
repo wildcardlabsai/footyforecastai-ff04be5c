@@ -1,11 +1,10 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { usePredictionsData } from "@/hooks/usePredictionsData";
-import { LEAGUE_NAMES } from "@/services/leagues";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown, Loader2 } from "lucide-react";
+import { Search, Filter, ArrowUpDown, Loader2, Calendar } from "lucide-react";
 import TeamBadge from "@/components/TeamBadge";
 
 const getConfBadge = (level: string) => {
@@ -15,6 +14,33 @@ const getConfBadge = (level: string) => {
     default: return <Badge variant="outline" className="text-muted-foreground text-[10px]">Low</Badge>;
   }
 };
+
+const formatMatchDate = (dateStr?: string) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const isTomorrow = d.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+  const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return `Today ${time}`;
+  if (isTomorrow) return `Tomorrow ${time}`;
+  return `${d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })} ${time}`;
+};
+
+const WinProbBar = ({ home, draw, away, homeTeam, awayTeam }: { home: number; draw: number; away: number; homeTeam: string; awayTeam: string }) => (
+  <div className="space-y-1.5">
+    <div className="flex items-center justify-between text-[10px]">
+      <span className={`font-bold ${home >= draw && home >= away ? 'text-primary' : 'text-foreground'}`}>{homeTeam} {home}%</span>
+      <span className="text-muted-foreground">Draw {draw}%</span>
+      <span className={`font-bold ${away >= draw && away >= home ? 'text-primary' : 'text-foreground'}`}>{away}% {awayTeam}</span>
+    </div>
+    <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
+      <div className={`rounded-l-full ${home >= draw && home >= away ? 'bg-primary' : 'bg-accent'}`} style={{ width: `${home}%` }} />
+      <div className="bg-muted-foreground/30" style={{ width: `${draw}%` }} />
+      <div className={`rounded-r-full ${away >= draw && away >= home ? 'bg-primary' : 'bg-accent'}`} style={{ width: `${away}%` }} />
+    </div>
+  </div>
+);
 
 const Predictions = () => {
   const { data: predictions = [], isLoading, error } = usePredictionsData();
@@ -52,7 +78,7 @@ const Predictions = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground">Predictions</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            {isLoading ? 'Loading...' : `${predictions.length} matches predicted · Real-time data`}
+            {isLoading ? 'Loading...' : `${predictions.length} matches predicted · ML-powered data`}
           </p>
         </div>
 
@@ -98,9 +124,9 @@ const Predictions = () => {
                       <th className="px-4 py-3 text-left font-medium">
                         <button onClick={() => handleSort('league')} className="flex items-center gap-1 hover:text-foreground">League <ArrowUpDown className="h-3 w-3" /></button>
                       </th>
-                      <th className="px-4 py-3 text-left font-medium">Home</th>
-                      <th className="px-4 py-3 text-left font-medium">Away</th>
-                      <th className="px-4 py-3 text-center font-medium">Prediction</th>
+                      <th className="px-4 py-3 text-left font-medium">Match</th>
+                      <th className="px-4 py-3 text-left font-medium">Date</th>
+                      <th className="px-4 py-3 text-center font-medium">Win Probabilities</th>
                       <th className="px-4 py-3 text-center font-medium">
                         <button onClick={() => handleSort('confidence')} className="flex items-center gap-1 hover:text-foreground mx-auto">Conf. <ArrowUpDown className="h-3 w-3" /></button>
                       </th>
@@ -113,9 +139,14 @@ const Predictions = () => {
                     {filtered.map(p => (
                       <tr key={p.id} className="border-b border-border/20 transition-colors hover:bg-secondary/20">
                         <td className="px-4 py-3 text-muted-foreground truncate max-w-[120px]">{p.league}</td>
-                        <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.homeTeam} logo={p.homeLogo} /></td>
-                        <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={p.awayTeam} logo={p.awayLogo} /></td>
-                        <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-foreground"><TeamBadge name={p.homeTeam} logo={p.homeLogo} size={14} /></div>
+                          <div className="font-medium text-foreground mt-0.5"><TeamBadge name={p.awayTeam} logo={p.awayLogo} size={14} /></div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground text-[10px] whitespace-nowrap">{formatMatchDate(p.matchDate)}</td>
+                        <td className="px-4 py-3 min-w-[200px]">
+                          <WinProbBar home={p.homeWinProb} draw={p.drawProb} away={p.awayWinProb} homeTeam="H" awayTeam="A" />
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
@@ -149,6 +180,14 @@ const Predictions = () => {
                     {getConfBadge(p.confidenceLevel)}
                   </div>
 
+                  {/* Match date */}
+                  {p.status === 'scheduled' && p.matchDate && (
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {formatMatchDate(p.matchDate)}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold text-foreground truncate"><TeamBadge name={p.homeTeam} logo={p.homeLogo} size={16} /></div>
@@ -161,6 +200,9 @@ const Predictions = () => {
                       <div className="text-sm font-semibold text-foreground truncate flex justify-end"><TeamBadge name={p.awayTeam} logo={p.awayLogo} size={16} /></div>
                     </div>
                   </div>
+
+                  {/* Win probability bar */}
+                  <WinProbBar home={p.homeWinProb} draw={p.drawProb} away={p.awayWinProb} homeTeam={p.homeTeam.split(' ').pop() || 'Home'} awayTeam={p.awayTeam.split(' ').pop() || 'Away'} />
 
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
                     <div className="text-center">

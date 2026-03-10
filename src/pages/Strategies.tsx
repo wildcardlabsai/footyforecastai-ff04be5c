@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Sliders, Trash2, Copy, Play, Pause, TrendingUp, Target, Bell } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Sliders, Trash2, Copy, Bell, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LEAGUES } from "@/services/leagues";
 
 interface Strategy {
   id: string;
@@ -26,41 +26,12 @@ interface Strategy {
   favoriteTrailingOnly: boolean;
   cooldownMinutes: number;
   leagueFilters: string[];
-  alertsSent: number;
-  hitRate: number;
 }
 
-const defaultStrategies: Strategy[] = [
-  {
-    id: 's1', name: 'Late Game Pressure', isActive: true,
-    probabilityThreshold: 65, minMinute: 65, maxMinute: 88,
-    minShotsOnTarget: 4, minDangerousAttacks: 60, minCorners: 3,
-    requireRedCard: false, secondHalfOnly: true, favoriteTrailingOnly: false,
-    cooldownMinutes: 15, leagueFilters: ['Premier League', 'La Liga', 'Champions League'],
-    alertsSent: 47, hitRate: 76,
-  },
-  {
-    id: 's2', name: 'Red Card Advantage', isActive: true,
-    probabilityThreshold: 55, minMinute: 30, maxMinute: 85,
-    minShotsOnTarget: 2, minDangerousAttacks: 40, minCorners: 0,
-    requireRedCard: true, secondHalfOnly: false, favoriteTrailingOnly: false,
-    cooldownMinutes: 20, leagueFilters: [],
-    alertsSent: 12, hitRate: 83,
-  },
-  {
-    id: 's3', name: 'Underdog Comeback', isActive: false,
-    probabilityThreshold: 70, minMinute: 55, maxMinute: 85,
-    minShotsOnTarget: 5, minDangerousAttacks: 80, minCorners: 4,
-    requireRedCard: false, secondHalfOnly: true, favoriteTrailingOnly: true,
-    cooldownMinutes: 10, leagueFilters: ['Premier League', 'Bundesliga'],
-    alertsSent: 8, hitRate: 62,
-  },
-];
-
-const LEAGUES = ['Premier League', 'Championship', 'League One', 'League Two', 'Champions League', 'Europa League', 'Conference League', 'Bundesliga', 'La Liga', 'Serie A', 'Ligue 1'];
+const LEAGUE_NAMES = LEAGUES.map(l => l.name);
 
 const Strategies = () => {
-  const [strategies, setStrategies] = useState<Strategy[]>(defaultStrategies);
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [editingStrategy, setEditingStrategy] = useState<Strategy | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -75,7 +46,7 @@ const Strategies = () => {
   };
 
   const duplicateStrategy = (s: Strategy) => {
-    const newS = { ...s, id: `s${Date.now()}`, name: `${s.name} (Copy)`, alertsSent: 0, hitRate: 0 };
+    const newS = { ...s, id: `s${Date.now()}`, name: `${s.name} (Copy)` };
     setStrategies(prev => [...prev, newS]);
     toast({ title: "Strategy duplicated" });
   };
@@ -86,7 +57,7 @@ const Strategies = () => {
       probabilityThreshold: 60, minMinute: 50, maxMinute: 88,
       minShotsOnTarget: 3, minDangerousAttacks: 50, minCorners: 2,
       requireRedCard: false, secondHalfOnly: false, favoriteTrailingOnly: false,
-      cooldownMinutes: 15, leagueFilters: [], alertsSent: 0, hitRate: 0,
+      cooldownMinutes: 15, leagueFilters: [],
     });
     setDialogOpen(true);
   };
@@ -139,10 +110,8 @@ const Strategies = () => {
                 <div className="flex justify-between"><span>Probability ≥</span><span className="font-mono text-foreground">{s.probabilityThreshold}%</span></div>
                 <div className="flex justify-between"><span>Minute range</span><span className="font-mono text-foreground">{s.minMinute}' – {s.maxMinute}'</span></div>
                 <div className="flex justify-between"><span>Min SOT</span><span className="font-mono text-foreground">{s.minShotsOnTarget}</span></div>
-                <div className="flex justify-between"><span>Min DA</span><span className="font-mono text-foreground">{s.minDangerousAttacks}</span></div>
                 {s.requireRedCard && <Badge className="bg-destructive/20 text-destructive border-destructive/30 text-[10px]">Red Card Required</Badge>}
                 {s.secondHalfOnly && <Badge className="bg-accent/20 text-accent border-accent/30 text-[10px]">2nd Half Only</Badge>}
-                {s.favoriteTrailingOnly && <Badge className="bg-warning/20 text-warning border-warning/30 text-[10px]">Trailing Only</Badge>}
               </div>
 
               {s.leagueFilters.length > 0 && (
@@ -153,19 +122,6 @@ const Strategies = () => {
                   {s.leagueFilters.length > 3 && <span className="text-[9px] text-muted-foreground">+{s.leagueFilters.length - 3} more</span>}
                 </div>
               )}
-
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30">
-                <div className="flex items-center gap-1 text-xs">
-                  <Bell className="h-3 w-3 text-accent" />
-                  <span className="font-mono text-foreground">{s.alertsSent}</span>
-                  <span className="text-muted-foreground">sent</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs">
-                  <Target className="h-3 w-3 text-primary" />
-                  <span className="font-mono text-primary">{s.hitRate}%</span>
-                  <span className="text-muted-foreground">hit rate</span>
-                </div>
-              </div>
 
               <div className="flex gap-2 mt-3">
                 <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => openEdit(s)}>Edit</Button>
@@ -188,7 +144,7 @@ const Strategies = () => {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-lg bg-card border-border max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-foreground">{editingStrategy?.alertsSent ? 'Edit' : 'New'} Strategy</DialogTitle>
+              <DialogTitle className="text-foreground">{editingStrategy ? 'Edit' : 'New'} Strategy</DialogTitle>
             </DialogHeader>
             {editingStrategy && (
               <div className="space-y-4">
@@ -228,11 +184,6 @@ const Strategies = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs">Cooldown (minutes between alerts)</Label>
-                  <Input type="number" value={editingStrategy.cooldownMinutes} onChange={e => setEditingStrategy({ ...editingStrategy, cooldownMinutes: +e.target.value })} className="bg-background border-border" />
-                </div>
-
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">Require Red Card</Label>
@@ -251,7 +202,7 @@ const Strategies = () => {
                 <div className="space-y-2">
                   <Label className="text-xs">League Filters (leave empty for all)</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {LEAGUES.map(l => {
+                    {LEAGUE_NAMES.map(l => {
                       const selected = editingStrategy.leagueFilters.includes(l);
                       return (
                         <button

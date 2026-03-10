@@ -1,4 +1,4 @@
-import { Radio, TrendingUp, Bell, Target } from "lucide-react";
+import { Radio, TrendingUp, Target, BarChart3 } from "lucide-react";
 
 interface StatsData {
   liveMatches: number;
@@ -11,8 +11,8 @@ const StatsWidgets = ({ stats }: { stats: StatsData }) => {
   const widgets = [
     { icon: Radio, label: "Live Matches", value: stats.liveMatches, color: "text-foreground", iconColor: "text-accent" },
     { icon: TrendingUp, label: "Hot Matches", value: stats.hotMatches, color: "text-primary", iconColor: "text-primary" },
-    { icon: Bell, label: "Alerts Today", value: stats.alertsToday, color: "text-accent", iconColor: "text-accent" },
-    { icon: Target, label: "Hit Rate", value: `${stats.predictionAccuracy}%`, color: "text-primary", iconColor: "text-primary" },
+    { icon: BarChart3, label: "Predictions", value: stats.alertsToday || '–', color: "text-accent", iconColor: "text-accent" },
+    { icon: Target, label: "Leagues", value: stats.predictionAccuracy || '–', color: "text-primary", iconColor: "text-primary" },
   ];
 
   return (
