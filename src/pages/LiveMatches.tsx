@@ -24,7 +24,7 @@ const LiveMatches = () => {
   const today = new Date().toISOString().split('T')[0];
   const liveIds = new Set(liveMatches.map(m => m.id));
   const todayPredictions = predictions
-    .filter(p => p.matchDate?.startsWith(today) && !liveIds.has(p.id))
+    .filter(p => !liveIds.has(p.id))
     .map(p => ({
       id: p.id,
       fixtureId: Number(p.id),
@@ -40,6 +40,7 @@ const LiveMatches = () => {
       status: p.status as 'live' | 'finished' | 'halftime' | 'scheduled',
       predictedResult: p.predictedResult,
       confidence: p.confidence,
+      matchDate: p.matchDate,
     }));
 
   const allMatches = [
@@ -47,6 +48,7 @@ const LiveMatches = () => {
       ...m,
       predictedResult: undefined as string | undefined,
       confidence: undefined as number | undefined,
+      matchDate: undefined as string | undefined,
     })),
     ...todayPredictions,
   ];
@@ -68,7 +70,7 @@ const LiveMatches = () => {
   const statusOrder: Record<string, number> = { live: 0, halftime: 1, scheduled: 2, finished: 3 };
   filtered.sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
 
-  const getStatusBadge = (status: string, minute: number) => {
+  const getStatusBadge = (status: string, minute: number, matchDate?: string) => {
     if (status === 'live') return (
       <div className="flex items-center gap-1 text-primary">
         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
@@ -77,7 +79,18 @@ const LiveMatches = () => {
     );
     if (status === 'halftime') return <span className="text-[10px] font-semibold text-warning">HT</span>;
     if (status === 'finished') return <span className="text-[10px] text-muted-foreground">FT</span>;
-    return <span className="text-[10px] text-muted-foreground">Scheduled</span>;
+    return <span className="text-[10px] text-muted-foreground">{matchDate ? formatMatchTime(matchDate) : 'Scheduled'}</span>;
+  };
+
+  const formatMatchTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const isTomorrow = d.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (isToday) return `Today ${time}`;
+    if (isTomorrow) return `Tom ${time}`;
+    return `${d.toLocaleDateString([], { day: 'numeric', month: 'short' })} ${time}`;
   };
 
   return (
@@ -153,7 +166,7 @@ const LiveMatches = () => {
                         <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={m.homeTeam} logo={m.homeLogo} /></td>
                         <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{m.homeScore}-{m.awayScore}</td>
                         <td className="px-4 py-3 font-medium text-foreground"><TeamBadge name={m.awayTeam} logo={m.awayLogo} /></td>
-                        <td className="px-4 py-3 text-center">{getStatusBadge(m.status, m.minute)}</td>
+                        <td className="px-4 py-3 text-center">{getStatusBadge(m.status, m.minute, m.matchDate)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -173,7 +186,7 @@ const LiveMatches = () => {
                 <div key={m.id} onClick={() => navigate(`/match/${m.id}`)} className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:border-border/80 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] text-muted-foreground">{m.league}</span>
-                    {getStatusBadge(m.status, m.minute)}
+                    {getStatusBadge(m.status, m.minute, m.matchDate)}
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">

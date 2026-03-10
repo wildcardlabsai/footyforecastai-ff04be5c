@@ -9,6 +9,13 @@ const corsHeaders = {
 const BASE = 'https://sports.bzzoiro.com/api';
 const CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
 
+// Target leagues — filter BSD results to only these
+const TARGET_LEAGUES = new Set([
+  'premier league', 'la liga', 'bundesliga', 'serie a',
+  'champions league', 'europa league', 'conference league',
+  'uefa champions league', 'uefa europa league', 'uefa europa conference league',
+]);
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -69,9 +76,16 @@ serve(async (req) => {
       url = data.next;
     }
 
-    console.log(`Fetched ${allResults.length} predictions from BSD`);
+    console.log(`Fetched ${allResults.length} total predictions from BSD`);
 
-    const predictions = allResults.map(mapBsdPrediction);
+    // Filter to target leagues only
+    const filtered = allResults.filter((pred: any) => {
+      const leagueName = (pred.event?.league?.name || '').toLowerCase();
+      return TARGET_LEAGUES.has(leagueName);
+    });
+    console.log(`Filtered to ${filtered.length} predictions in target leagues`);
+
+    const predictions = filtered.map(mapBsdPrediction);
 
     // Save to cache
     await supabase.from('cached_predictions').delete().neq('id', '00000000-0000-0000-0000-000000000000');

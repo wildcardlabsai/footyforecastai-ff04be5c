@@ -1,47 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { useLiveMatches, usePredictions } from "@/hooks/useLiveMatches";
-import { LiveMatch } from "@/services/liveDataService";
-import { calculatePrediction, PredictionResult, MatchStats } from "@/services/predictionEngine";
+import { useLiveMatches } from "@/hooks/useLiveMatches";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, TrendingUp, AlertTriangle, Clock, Zap, Target, Radio, Shield, CornerDownRight } from "lucide-react";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  ResponsiveContainer, Tooltip as RechartsTooltip, ReferenceLine
-} from "recharts";
-
-function generateTimeline(match: LiveMatch, prediction: PredictionResult | null) {
-  const points = [];
-  const currentMin = match.minute;
-  for (let m = 1; m <= currentMin; m++) {
-    const factor = m / 90;
-    const noise = Math.sin(m * 0.7) * 8 + Math.cos(m * 0.3) * 5;
-    const baseProb = (prediction?.probabilityScore || 40) * factor + noise;
-    const momentumHome = 45 + Math.sin(m * 0.15) * 20 + Math.cos(m * 0.08) * 10;
-    const shotBurst = (m % 12 === 0 || m % 17 === 0) ? 8 : 0;
-    const lateGameBoost = m > 65 ? (m - 65) * 0.6 : 0;
-    points.push({
-      minute: m,
-      probability: Math.max(5, Math.min(95, Math.round(baseProb + shotBurst + lateGameBoost))),
-      momentumHome: Math.round(Math.max(20, Math.min(80, momentumHome))),
-      momentumAway: Math.round(Math.max(20, Math.min(80, 100 - momentumHome))),
-    });
-  }
-  return points;
-}
-
-function generateEvents(match: LiveMatch) {
-  const events: { minute: number; type: string; team: 'home' | 'away'; description: string }[] = [];
-  if (match.homeScore > 0) events.push({ minute: Math.round(match.minute * 0.35), type: 'goal', team: 'home', description: `${match.homeTeam} scores!` });
-  if (match.homeScore > 1) events.push({ minute: Math.round(match.minute * 0.7), type: 'goal', team: 'home', description: `${match.homeTeam} scores again!` });
-  if (match.awayScore > 0) events.push({ minute: Math.round(match.minute * 0.5), type: 'goal', team: 'away', description: `${match.awayTeam} equalizer!` });
-  if (match.awayScore > 1) events.push({ minute: Math.round(match.minute * 0.8), type: 'goal', team: 'away', description: `${match.awayTeam} scores!` });
-  events.push({ minute: Math.round(match.minute * 0.25), type: 'yellow', team: 'home', description: 'Yellow card' });
-  events.push({ minute: Math.round(match.minute * 0.6), type: 'yellow', team: 'away', description: 'Yellow card' });
-  return events.sort((a, b) => b.minute - a.minute);
-}
+import { ArrowLeft, Clock, Radio, Calendar } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const StatBar = ({ label, homeValue, awayValue, homeLabel, awayLabel, highlight }: {
   label: string; homeValue: number; awayValue: number;
@@ -68,23 +33,84 @@ const StatBar = ({ label, homeValue, awayValue, homeLabel, awayLabel, highlight 
   );
 };
 
+const WinProbBar = ({ home, draw, away, homeTeam, awayTeam }: { home: number; draw: number; away: number; homeTeam: string; awayTeam: string }) => (
+  <div className="space-y-1.5 mt-3">
+    <div className="flex items-center justify-between text-xs">
+      <span className={`font-bold ${home >= draw && home >= away ? 'text-primary' : 'text-foreground'}`}>{homeTeam} {home}%</span>
+      <span className="text-muted-foreground text-[10px]">Win Probability</span>
+      <span className={`font-bold ${away >= draw && away >= home ? 'text-primary' : 'text-foreground'}`}>{away}% {awayTeam}</span>
+    </div>
+    <div className="flex h-2.5 rounded-full overflow-hidden gap-0.5">
+      <div className={`rounded-l-full ${home >= draw && home >= away ? 'bg-primary' : 'bg-accent'}`} style={{ width: `${home}%` }} />
+      <div className="bg-muted-foreground/30" style={{ width: `${draw}%` }} />
+      <div className={`rounded-r-full ${away >= draw && away >= home ? 'bg-primary' : 'bg-accent'}`} style={{ width: `${away}%` }} />
+    </div>
+    <div className="text-center text-[10px] text-muted-foreground">Draw {draw}%</div>
+  </div>
+);
+
+const formatMatchDate = (dateStr?: string) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return `${d.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+};
+
 const MatchDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: matches = [] } = useLiveMatches(15000);
-  const predictions = usePredictions(matches);
+  const { data: liveMatches = [] } = useLiveMatches(15000);
+  const { data: predictions = [] } = usePredictionsData();
 
-  const match = matches.find(m => m.id === id);
-  const prediction = match ? (match.status === 'live' ? calculatePrediction(match.stats) : null) : null;
-  const timeline = match && prediction ? generateTimeline(match, prediction) : [];
-  const events = match ? generateEvents(match) : [];
-  const liveCount = matches.filter(m => m.status === 'live').length;
-  const prob = prediction?.probabilityScore || 0;
+  // Find match in live matches or predictions
+  const liveMatch = liveMatches.find(m => m.id === id);
+  const prediction = predictions.find(p => p.id === id);
+
+  const match = useMemo(() => {
+    if (liveMatch) {
+      return {
+        id: liveMatch.id,
+        league: liveMatch.league,
+        leagueLogo: liveMatch.leagueLogo,
+        homeTeam: liveMatch.homeTeam,
+        awayTeam: liveMatch.awayTeam,
+        homeLogo: liveMatch.homeLogo,
+        awayLogo: liveMatch.awayLogo,
+        homeScore: liveMatch.homeScore,
+        awayScore: liveMatch.awayScore,
+        minute: liveMatch.minute,
+        status: liveMatch.status,
+        stats: liveMatch.stats,
+        matchDate: undefined as string | undefined,
+        incidents: (liveMatch as any).incidents || [],
+      };
+    }
+    if (prediction) {
+      return {
+        id: prediction.id,
+        league: prediction.league,
+        leagueLogo: prediction.leagueLogo,
+        homeTeam: prediction.homeTeam,
+        awayTeam: prediction.awayTeam,
+        homeLogo: prediction.homeLogo,
+        awayLogo: prediction.awayLogo,
+        homeScore: prediction.homeScore,
+        awayScore: prediction.awayScore,
+        minute: prediction.minute || 0,
+        status: prediction.status || 'scheduled',
+        stats: null,
+        matchDate: prediction.matchDate,
+        incidents: [],
+      };
+    }
+    return null;
+  }, [liveMatch, prediction]);
+
+  const liveCount = liveMatches.filter(m => m.status === 'live').length;
 
   if (!match) {
     return (
       <DashboardLayout liveMatchCount={liveCount}>
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-muted-foreground">Match not found or not currently live</p>
+          <p className="text-muted-foreground">Match not found</p>
           <Link to="/live"><Button variant="outline" size="sm" className="mt-4 gap-2"><ArrowLeft className="h-4 w-4" />Back to Live</Button></Link>
         </div>
       </DashboardLayout>
@@ -107,13 +133,22 @@ const MatchDetail = () => {
             <div className="flex items-center gap-2">
               {match.status === 'live' && <div className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />}
               <span className="text-xs font-mono text-muted-foreground">
-                {match.status === 'halftime' ? 'HALF TIME' : match.status === 'finished' ? 'FULL TIME' : `${match.minute}'`}
+                {match.status === 'halftime' ? 'HALF TIME' : match.status === 'finished' ? 'FULL TIME' : match.status === 'scheduled' ? 'UPCOMING' : `${match.minute}'`}
               </span>
             </div>
           </div>
 
+          {/* Match date for upcoming matches */}
+          {match.status === 'scheduled' && match.matchDate && (
+            <div className="flex items-center justify-center gap-1.5 px-4 py-2 bg-secondary/10 border-b border-border/30">
+              <Calendar className="h-3 w-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">{formatMatchDate(match.matchDate)}</span>
+            </div>
+          )}
+
           <div className="flex items-center justify-center gap-4 sm:gap-8 py-6 sm:py-8 px-4">
-            <div className="flex-1 text-right">
+            <div className="flex-1 text-right flex flex-col items-end gap-1">
+              {match.homeLogo && <img src={match.homeLogo} alt="" className="h-8 w-8 object-contain" />}
               <div className="text-sm sm:text-lg font-bold text-foreground">{match.homeTeam}</div>
               <span className="text-[10px] text-muted-foreground">Home</span>
             </div>
@@ -122,140 +157,53 @@ const MatchDetail = () => {
               <span className="text-xl sm:text-3xl text-muted-foreground">–</span>
               <span className="text-3xl sm:text-5xl font-bold font-mono text-foreground">{match.awayScore}</span>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col items-start gap-1">
+              {match.awayLogo && <img src={match.awayLogo} alt="" className="h-8 w-8 object-contain" />}
               <div className="text-sm sm:text-lg font-bold text-foreground">{match.awayTeam}</div>
               <span className="text-[10px] text-muted-foreground">Away</span>
             </div>
           </div>
 
+          {/* Win probabilities from prediction */}
           {prediction && (
-            <div className="border-t border-border/50 px-4 py-3 bg-secondary/10">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  <span className={`text-2xl font-bold font-mono ${prob >= 70 ? "text-primary text-glow-green" : prob >= 50 ? "text-accent" : "text-muted-foreground"}`}>
-                    {prob}%
-                  </span>
-                  <div>
-                    <p className="text-xs font-medium text-foreground">Match Intensity</p>
-                    <p className="text-[10px] text-muted-foreground">{prediction.goalWindow}</p>
-                  </div>
+            <div className="border-t border-border/50 px-4 py-4 bg-secondary/10">
+              <WinProbBar
+                home={prediction.homeWinProb}
+                draw={prediction.drawProb}
+                away={prediction.awayWinProb}
+                homeTeam={prediction.homeTeam.split(' ').pop() || 'Home'}
+                awayTeam={prediction.awayTeam.split(' ').pop() || 'Away'}
+              />
+
+              <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-border/30">
+                <div className="text-center">
+                  <div className="text-[10px] text-muted-foreground">Prediction</div>
+                  <div className="text-xs font-bold text-foreground">{prediction.predictedResult}</div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className={`text-[10px] ${
-                    prediction.confidence === 'very_high' ? "bg-primary/20 text-primary border-primary/30" :
-                    prediction.confidence === 'high' ? "bg-accent/20 text-accent border-accent/30" :
-                    prediction.confidence === 'medium' ? "bg-warning/20 text-warning border-warning/30" :
-                    "bg-secondary text-muted-foreground border-border"
-                  }`}>
-                    {prediction.confidence.replace('_', ' ')}
-                  </Badge>
-                  {prediction.activeSignals.slice(0, 3).map(sig => (
-                    <span key={sig} className="rounded bg-secondary px-1.5 py-0.5 text-[9px] text-muted-foreground">{sig.replace(/_/g, ' ')}</span>
-                  ))}
+                <div className="text-center">
+                  <div className="text-[10px] text-muted-foreground">Score</div>
+                  <div className="text-xs font-mono font-bold text-foreground">{prediction.predictedScore}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] text-muted-foreground">BTTS</div>
+                  <div className={`text-xs font-bold ${prediction.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{prediction.bttsResult}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] text-muted-foreground">Over 2.5</div>
+                  <div className="text-xs font-mono font-bold text-foreground">{prediction.over25Prob}%</div>
                 </div>
               </div>
-              {prediction.reasonSummary && (
-                <p className="mt-2 text-xs text-muted-foreground italic">{prediction.reasonSummary}</p>
+
+              {prediction.reasoning && (
+                <p className="mt-3 text-xs text-muted-foreground italic">{prediction.reasoning}</p>
               )}
             </div>
           )}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-4">
-            {/* Timeline Chart */}
-            {timeline.length > 0 && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-primary" /> Match Intensity Timeline
-                </h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart data={timeline}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(160, 8%, 14%)" />
-                    <XAxis dataKey="minute" tick={{ fill: 'hsl(160, 8%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[0, 100]} tick={{ fill: 'hsl(160, 8%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <RechartsTooltip
-                      contentStyle={{ background: 'hsl(160, 12%, 6%)', border: '1px solid hsl(160, 8%, 14%)', borderRadius: 8, fontSize: 12 }}
-                      formatter={(value: number) => [`${value}%`, 'Intensity']}
-                    />
-                    <defs>
-                      <linearGradient id="probGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(90, 85%, 45%)" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(90, 85%, 45%)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area type="monotone" dataKey="probability" stroke="hsl(90, 85%, 45%)" fill="url(#probGrad)" strokeWidth={2} dot={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            {/* Momentum Chart */}
-            {timeline.length > 0 && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-accent" /> Momentum Flow
-                </h3>
-                <ResponsiveContainer width="100%" height={180}>
-                  <AreaChart data={timeline}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(160, 8%, 14%)" />
-                    <XAxis dataKey="minute" tick={{ fill: 'hsl(160, 8%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[0, 100]} tick={{ fill: 'hsl(160, 8%, 55%)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <RechartsTooltip contentStyle={{ background: 'hsl(160, 12%, 6%)', border: '1px solid hsl(160, 8%, 14%)', borderRadius: 8, fontSize: 12 }} />
-                    <ReferenceLine y={50} stroke="hsl(160, 8%, 25%)" strokeDasharray="3 3" />
-                    <defs>
-                      <linearGradient id="homeGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(90, 85%, 45%)" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="hsl(90, 85%, 45%)" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="awayGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(180, 85%, 45%)" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="hsl(180, 85%, 45%)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Area type="monotone" dataKey="momentumHome" stroke="hsl(90, 85%, 45%)" fill="url(#homeGrad)" strokeWidth={2} dot={false} name={match.homeTeam} />
-                    <Area type="monotone" dataKey="momentumAway" stroke="hsl(180, 85%, 45%)" fill="url(#awayGrad)" strokeWidth={1.5} dot={false} name={match.awayTeam} />
-                  </AreaChart>
-                </ResponsiveContainer>
-                <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
-                  <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-primary" /> {match.homeTeam}</div>
-                  <div className="flex items-center gap-1.5"><div className="h-2 w-2 rounded-full bg-accent" /> {match.awayTeam}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Factor Breakdown */}
-            {prediction && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" /> Analysis Factor Breakdown
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {Object.entries(prediction.factorBreakdown).map(([key, value]) => {
-                    const maxVal = 14;
-                    const percent = Math.min(100, (value / maxVal) * 100);
-                    return (
-                      <div key={key} className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</span>
-                          <span className="text-[10px] font-mono text-foreground">{value}</span>
-                        </div>
-                        <div className="h-1 rounded-full bg-secondary overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${value >= 10 ? "bg-primary" : value >= 6 ? "bg-accent" : "bg-muted-foreground"}`}
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right column — Stats & Events */}
-          <div className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* Stats */}
+          {s && (
             <div className="rounded-xl border border-border bg-card p-4">
               <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Radio className="h-4 w-4 text-accent" /> Match Stats
@@ -264,33 +212,44 @@ const MatchDetail = () => {
                 <StatBar label="Possession" homeValue={s.homePossession} awayValue={s.awayPossession} homeLabel={`${s.homePossession}%`} awayLabel={`${s.awayPossession}%`} />
                 <StatBar label="Shots" homeValue={s.homeShots} awayValue={s.awayShots} highlight />
                 <StatBar label="Shots on Target" homeValue={s.homeShotsOnTarget} awayValue={s.awayShotsOnTarget} highlight />
-                <StatBar label="Dangerous Attacks" homeValue={s.homeDangerousAttacks} awayValue={s.awayDangerousAttacks} highlight />
                 <StatBar label="Corners" homeValue={s.homeCorners} awayValue={s.awayCorners} />
-                <StatBar label="xG" homeValue={s.homeXg} awayValue={s.awayXg} homeLabel={s.homeXg.toFixed(2)} awayLabel={s.awayXg.toFixed(2)} highlight />
                 <StatBar label="Yellow Cards" homeValue={s.homeYellowCards} awayValue={s.awayYellowCards} />
                 <StatBar label="Red Cards" homeValue={s.homeRedCards} awayValue={s.awayRedCards} />
               </div>
             </div>
+          )}
 
-            {/* Events */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" /> Match Events
-              </h3>
-              <div className="space-y-2">
-                {events.map((event, i) => (
+          {/* Match Events / Goalscorers */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" /> Match Events
+            </h3>
+            <div className="space-y-2">
+              {match.incidents && match.incidents.length > 0 ? (
+                match.incidents.map((event: any, i: number) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
                     <span className="font-mono text-muted-foreground w-6 text-right">{event.minute}'</span>
-                    <div className={`h-2 w-2 rounded-full ${event.type === 'goal' ? 'bg-primary' : event.type === 'red' ? 'bg-destructive' : event.type === 'yellow' ? 'bg-warning' : 'bg-muted-foreground'}`} />
+                    <div className={`h-2 w-2 rounded-full ${
+                      event.type === 'goal' ? 'bg-primary' :
+                      event.type === 'card' && event.card_type === 'red' ? 'bg-destructive' :
+                      event.type === 'card' ? 'bg-warning' :
+                      event.type === 'substitution' ? 'bg-accent' :
+                      'bg-muted-foreground'
+                    }`} />
                     <span className={`${event.type === 'goal' ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
-                      {event.description}
+                      {event.type === 'goal' ? '⚽ ' : event.type === 'card' ? '🟨 ' : ''}
+                      {event.player_name || (event.type === 'goal' ? 'Goal' : event.type)}
+                      <span className="text-muted-foreground font-normal ml-1">
+                        ({event.is_home ? match.homeTeam : match.awayTeam})
+                      </span>
                     </span>
                   </div>
-                ))}
-                {events.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No events yet</p>
-                )}
-              </div>
+                ))
+              ) : match.status === 'scheduled' ? (
+                <p className="text-xs text-muted-foreground">Match hasn't started yet. Events will appear here during the game.</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">No events available</p>
+              )}
             </div>
           </div>
         </div>
