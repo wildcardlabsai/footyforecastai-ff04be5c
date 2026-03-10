@@ -38,7 +38,7 @@ const WatchButton = ({ isWatched, onClick }: { isWatched: boolean; onClick: (e: 
 
 // Mobile card view
 const MatchCard = ({ m, pred, isWatched, onClick, onToggleWatch }: {
-  m: DemoMatch; pred?: PredictionResult; isWatched: boolean;
+  m: MatchData; pred?: PredictionResult; isWatched: boolean;
   onClick: () => void; onToggleWatch: (e: React.MouseEvent) => void;
 }) => {
   const prob = pred?.probabilityScore || 0;

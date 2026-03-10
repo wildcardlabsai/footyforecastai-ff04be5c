@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
-  matches: DemoMatch[];
+  matches: MatchData[];
   predictions: Map<string, PredictionResult>;
   watchedIds: Set<string>;
   onToggleWatch: (id: string) => void;

@@ -5,7 +5,7 @@ import { TrendingUp, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Props {
-  matches: DemoMatch[];
+  matches: MatchData[];
   predictions: Map<string, PredictionResult>;
 }
 
