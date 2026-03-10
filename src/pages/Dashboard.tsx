@@ -1,41 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StatsWidgets from "@/components/dashboard/StatsWidgets";
 import LiveMatchTable from "@/components/dashboard/LiveMatchTable";
 import HotMatchesPanel from "@/components/dashboard/HotMatchesPanel";
 import RecentAlerts from "@/components/dashboard/RecentAlerts";
 import WatchedGamesPanel from "@/components/dashboard/WatchedGamesPanel";
-import { getDemoMatches, getDemoAlerts, getDemoStats, DemoMatch } from "@/services/demoData";
-import { runPredictions, PredictionResult } from "@/services/predictionEngine";
+import { getDemoAlerts } from "@/services/demoData";
+import { useLiveMatches, usePredictions } from "@/hooks/useLiveMatches";
+import { LiveMatch } from "@/services/liveDataService";
+import { Loader2, WifiOff } from "lucide-react";
 
 const Dashboard = () => {
-  const [matches, setMatches] = useState<DemoMatch[]>([]);
-  const [predictions, setPredictions] = useState<Map<string, PredictionResult>>(new Map());
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [watchedIds, setWatchedIds] = useState<Set<string>>(() => new Set(['dm1', 'dm6']));
-  const stats = getDemoStats();
-  const alerts = getDemoAlerts();
-
-  useEffect(() => {
-    const update = () => {
-      const demoMatches = getDemoMatches();
-      setMatches(demoMatches);
-
-      const allStats = demoMatches
-        .filter((m) => m.status === 'live')
-        .map((m) => m.stats);
-
-      const results = runPredictions(allStats);
-      const predMap = new Map<string, PredictionResult>();
-      results.forEach((r) => predMap.set(r.matchId, r));
-      setPredictions(predMap);
-      setLastUpdated(new Date());
-    };
-
-    update();
-    const interval = setInterval(update, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: matches = [], isLoading, error, dataUpdatedAt } = useLiveMatches(30000);
+  const predictions = usePredictions(matches);
+  const [watchedIds, setWatchedIds] = useState<Set<string>>(() => new Set());
+  const alerts = getDemoAlerts(); // Keep demo alerts until alert system is built
 
   const toggleWatch = (id: string) => {
     setWatchedIds((prev) => {
@@ -46,27 +25,65 @@ const Dashboard = () => {
     });
   };
 
-  const liveCount = matches.filter(m => m.status === 'live').length;
+  const liveCount = matches.filter((m: LiveMatch) => m.status === 'live').length;
+  const hotCount = Array.from(predictions.values()).filter(p => p.probabilityScore >= 62).length;
+  const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt) : new Date();
+
+  const stats = {
+    liveMatches: liveCount,
+    hotMatches: hotCount,
+    alertsToday: alerts.length,
+    predictionAccuracy: 73,
+  };
+
+  // Adapt LiveMatch to the shape expected by existing components (DemoMatch-like)
+  const adaptedMatches = matches.map((m: LiveMatch) => ({
+    id: m.id,
+    league: m.league,
+    homeTeam: m.homeTeam,
+    awayTeam: m.awayTeam,
+    homeLogo: m.homeLogo,
+    awayLogo: m.awayLogo,
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    minute: m.minute,
+    status: m.status,
+    stats: m.stats,
+  }));
 
   return (
     <DashboardLayout liveMatchCount={liveCount}>
       <div className="space-y-4 sm:space-y-6">
         <StatsWidgets stats={stats} />
 
-        {/* Refresh indicator */}
+        {/* Status indicator */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
-          Auto-refreshing · Last updated {lastUpdated.toLocaleTimeString()}
+          {isLoading ? (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin text-primary" />
+              Loading live matches...
+            </>
+          ) : error ? (
+            <>
+              <WifiOff className="h-3 w-3 text-destructive" />
+              <span className="text-destructive">Failed to load — retrying...</span>
+            </>
+          ) : (
+            <>
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
+              {liveCount} live matches · Updated {lastUpdated.toLocaleTimeString()}
+            </>
+          )}
         </div>
 
         {/* Main content grid */}
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <LiveMatchTable matches={matches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
+            <LiveMatchTable matches={adaptedMatches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
           </div>
           <div className="space-y-4 sm:space-y-6">
-            <WatchedGamesPanel matches={matches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
-            <HotMatchesPanel matches={matches} predictions={predictions} />
+            <WatchedGamesPanel matches={adaptedMatches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
+            <HotMatchesPanel matches={adaptedMatches} predictions={predictions} />
             <RecentAlerts alerts={alerts} />
           </div>
         </div>
