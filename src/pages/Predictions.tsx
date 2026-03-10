@@ -4,15 +4,35 @@ import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ArrowUpDown, Loader2, Calendar } from "lucide-react";
+import { Search, Filter, ArrowUpDown, Loader2, Calendar, Star, TrendingUp } from "lucide-react";
 import TeamBadge from "@/components/TeamBadge";
+import { getConfidenceLabel } from "@/services/footballPredictionEngine";
 
 const getConfBadge = (level: string) => {
-  switch (level) {
-    case 'high': return <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px]">High</Badge>;
-    case 'medium': return <Badge className="bg-warning/20 text-warning border-warning/30 text-[10px]">Medium</Badge>;
-    default: return <Badge variant="outline" className="text-muted-foreground text-[10px]">Low</Badge>;
-  }
+  const label = getConfidenceLabel(level);
+  const cls = {
+    elite: 'bg-primary/20 text-primary border-primary/30',
+    high: 'bg-primary/15 text-primary border-primary/20',
+    medium: 'bg-warning/20 text-warning border-warning/30',
+    low: 'bg-muted text-muted-foreground border-border',
+    very_risky: 'bg-destructive/20 text-destructive border-destructive/30',
+  }[level] || 'bg-muted text-muted-foreground border-border';
+  return <Badge className={`text-[10px] ${cls}`}>{label}</Badge>;
+};
+
+const getConfColor = (c: number) => {
+  if (c >= 85) return 'text-primary';
+  if (c >= 75) return 'text-primary/80';
+  if (c >= 60) return 'text-warning';
+  if (c >= 45) return 'text-muted-foreground';
+  return 'text-destructive';
+};
+
+const getConfBarColor = (c: number) => {
+  if (c >= 75) return 'bg-primary';
+  if (c >= 60) return 'bg-accent';
+  if (c >= 45) return 'bg-warning';
+  return 'bg-destructive';
 };
 
 const formatMatchDate = (dateStr?: string) => {
@@ -78,7 +98,7 @@ const Predictions = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground">Predictions</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            {isLoading ? 'Loading...' : `${predictions.length} matches predicted · ML-powered data`}
+            {isLoading ? 'Loading...' : `${predictions.length} matches · Enhanced ML engine with Poisson scoring`}
           </p>
         </div>
 
@@ -98,9 +118,11 @@ const Predictions = () => {
             <SelectTrigger className="w-full sm:w-[150px] h-9 text-xs bg-card border-border"><SelectValue placeholder="All Confidence" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Confidence</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="elite">Elite (85+)</SelectItem>
+              <SelectItem value="high">High (75-84)</SelectItem>
+              <SelectItem value="medium">Medium (60-74)</SelectItem>
+              <SelectItem value="low">Low (45-59)</SelectItem>
+              <SelectItem value="very_risky">Very Risky (&lt;45)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -130,9 +152,10 @@ const Predictions = () => {
                       <th className="px-4 py-3 text-center font-medium">
                         <button onClick={() => handleSort('confidence')} className="flex items-center gap-1 hover:text-foreground mx-auto">Conf. <ArrowUpDown className="h-3 w-3" /></button>
                       </th>
-                      <th className="px-4 py-3 text-center font-medium">Score</th>
+                      <th className="px-4 py-3 text-center font-medium">Top Scores</th>
                       <th className="px-4 py-3 text-center font-medium">BTTS</th>
                       <th className="px-4 py-3 text-center font-medium">O2.5</th>
+                      <th className="px-4 py-3 text-center font-medium">Flags</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -148,16 +171,40 @@ const Predictions = () => {
                           <WinProbBar home={p.homeWinProb} draw={p.drawProb} away={p.awayWinProb} homeTeam="H" awayTeam="A" />
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`font-mono font-bold ${getConfColor(p.confidence)}`}>{p.confidence}%</span>
                             {getConfBadge(p.confidenceLevel)}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-center font-mono font-bold text-foreground">{p.predictedScore}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="space-y-0.5">
+                            {(p.topScores || []).slice(0, 3).map((s, i) => (
+                              <div key={i} className="text-[10px]">
+                                <span className="font-mono font-bold text-foreground">{s.score}</span>
+                                <span className="text-muted-foreground ml-1">({s.probability}%)</span>
+                              </div>
+                            ))}
+                            {!p.topScores?.length && <span className="font-mono font-bold text-foreground">{p.predictedScore}</span>}
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <span className={`font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>{p.bttsResult}</span>
                         </td>
                         <td className="px-4 py-3 text-center font-mono text-muted-foreground">{p.over25Prob}%</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            {p.isValue && (
+                              <Badge className="text-[9px] bg-primary/20 text-primary border-primary/30">
+                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />Value
+                              </Badge>
+                            )}
+                            {p.isUpset && (
+                              <Badge className="text-[9px] bg-warning/20 text-warning border-warning/30">
+                                <Star className="h-2.5 w-2.5 mr-0.5" />Upset
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -177,10 +224,13 @@ const Predictions = () => {
                 <div key={p.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-muted-foreground">{p.league}</span>
-                    {getConfBadge(p.confidenceLevel)}
+                    <div className="flex items-center gap-1.5">
+                      {p.isValue && <Badge className="text-[9px] bg-primary/20 text-primary border-primary/30">Value</Badge>}
+                      {p.isUpset && <Badge className="text-[9px] bg-warning/20 text-warning border-warning/30">Upset</Badge>}
+                      {getConfBadge(p.confidenceLevel)}
+                    </div>
                   </div>
 
-                  {/* Match date */}
                   {p.status === 'scheduled' && p.matchDate && (
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                       <Calendar className="h-3 w-3" />
@@ -201,8 +251,20 @@ const Predictions = () => {
                     </div>
                   </div>
 
-                  {/* Win probability bar */}
                   <WinProbBar home={p.homeWinProb} draw={p.drawProb} away={p.awayWinProb} homeTeam={p.homeTeam.split(' ').pop() || 'Home'} awayTeam={p.awayTeam.split(' ').pop() || 'Away'} />
+
+                  {/* Top 3 Correct Scores */}
+                  {p.topScores && p.topScores.length > 0 && (
+                    <div className="flex items-center gap-3 pt-1">
+                      <span className="text-[10px] text-muted-foreground">Top scores:</span>
+                      {p.topScores.map((s, i) => (
+                        <span key={i} className="text-[10px]">
+                          <span className="font-mono font-bold text-foreground">{s.score}</span>
+                          <span className="text-muted-foreground ml-0.5">({s.probability}%)</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
                     <div className="text-center">
@@ -221,10 +283,10 @@ const Predictions = () => {
 
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-[10px] text-muted-foreground">Confidence</span>
-                    <span className={`font-mono font-bold text-xs ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-muted-foreground'}`}>{p.confidence}%</span>
+                    <span className={`font-mono font-bold text-xs ${getConfColor(p.confidence)}`}>{p.confidence}%</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                    <div className={`h-full rounded-full ${p.confidence >= 80 ? 'bg-primary' : p.confidence >= 60 ? 'bg-accent' : 'bg-muted-foreground'}`} style={{ width: `${p.confidence}%` }} />
+                    <div className={`h-full rounded-full ${getConfBarColor(p.confidence)}`} style={{ width: `${p.confidence}%` }} />
                   </div>
                 </div>
               ))}
