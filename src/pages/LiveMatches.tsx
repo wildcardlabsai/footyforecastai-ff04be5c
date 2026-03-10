@@ -48,6 +48,7 @@ const LiveMatches = () => {
       ...m,
       predictedResult: undefined as string | undefined,
       confidence: undefined as number | undefined,
+      matchDate: undefined as string | undefined,
     })),
     ...todayPredictions,
   ];
