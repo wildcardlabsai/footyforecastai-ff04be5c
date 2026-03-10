@@ -1,24 +1,10 @@
 import { motion } from "framer-motion";
+import { LEAGUES } from "@/services/leagues";
 
-const leagues = [
-  { name: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-  { name: "La Liga", flag: "🇪🇸" },
-  { name: "Bundesliga", flag: "🇩🇪" },
-  { name: "Serie A", flag: "🇮🇹" },
-  { name: "Ligue 1", flag: "🇫🇷" },
-  { name: "Champions League", flag: "🏆" },
-  { name: "Europa League", flag: "🏆" },
-  { name: "Eredivisie", flag: "🇳🇱" },
-  { name: "Primeira Liga", flag: "🇵🇹" },
-  { name: "Scottish Premiership", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿" },
-  { name: "Belgian Pro League", flag: "🇧🇪" },
-  { name: "Turkish Süper Lig", flag: "🇹🇷" },
-];
+const row1 = LEAGUES.slice(0, 6);
+const row2 = LEAGUES.slice(6);
 
-const row1 = leagues.slice(0, 6);
-const row2 = leagues.slice(6, 12);
-
-const MarqueeRow = ({ items, reverse = false }: { items: typeof leagues; reverse?: boolean }) => (
+const MarqueeRow = ({ items, reverse = false }: { items: typeof LEAGUES; reverse?: boolean }) => (
   <div className="group relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
     <div className={`flex shrink-0 gap-3 py-2 ${reverse ? "animate-marquee-reverse" : "animate-marquee"} group-hover:[animation-play-state:paused]`}>
       {[...items, ...items].map((league, i) => (
@@ -45,10 +31,10 @@ const LeaguesSection = () => {
           className="text-center"
         >
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            <span className="text-primary">12+</span> Leagues. Global Coverage.
+            <span className="text-primary">11</span> Leagues. Global Coverage.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            From Europe's elite leagues to continental competitions. FootyForecast covers them all with equal analytical depth.
+            From England's top four tiers to Europe's elite competitions. FootyForecast covers them all with equal analytical depth.
           </p>
         </motion.div>
 

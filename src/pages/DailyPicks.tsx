@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { getDemoDailyPicks } from "@/services/demoPredictions";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Badge } from "@/components/ui/badge";
-import { Target, BarChart3, TrendingUp, Zap } from "lucide-react";
+import { Target, BarChart3, TrendingUp, Zap, Loader2 } from "lucide-react";
 import { MatchPrediction } from "@/services/footballPredictionEngine";
 
 const PickCard = ({ p }: { p: MatchPrediction }) => (
@@ -25,7 +25,20 @@ const PickCard = ({ p }: { p: MatchPrediction }) => (
 );
 
 const DailyPicks = () => {
-  const picks = useMemo(() => getDemoDailyPicks(), []);
+  const { data: predictions = [], isLoading, error } = usePredictionsData();
+
+  const picks = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const todayPredictions = predictions.filter(p => p.matchDate?.startsWith(today));
+    const source = todayPredictions.length > 0 ? todayPredictions : predictions;
+    const sorted = [...source].sort((a, b) => b.confidence - a.confidence);
+    return {
+      resultPicks: sorted.filter(p => p.confidence >= 65).slice(0, 4),
+      goalsPicks: sorted.filter(p => p.over25Prob >= 65).slice(0, 4),
+      bttsPicks: sorted.filter(p => p.bttsProb >= 60).slice(0, 4),
+      valuePicks: sorted.filter(p => p.isUpset || p.confidence < 55).slice(0, 4),
+    };
+  }, [predictions]);
 
   const sections = [
     { title: "Best Result Picks", icon: Target, data: picks.resultPicks },
@@ -39,24 +52,34 @@ const DailyPicks = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">Daily Picks</h1>
-          <p className="text-xs text-muted-foreground mt-1">Curated predictions for today · Updated daily</p>
+          <p className="text-xs text-muted-foreground mt-1">Curated predictions for today · Real-time data</p>
         </div>
 
-        {sections.map(section => (
-          <div key={section.title}>
-            <div className="flex items-center gap-2 mb-3">
-              <section.icon className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">{section.title}</h2>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {section.data.length > 0 ? section.data.map(p => (
-                <PickCard key={p.id} p={p} />
-              )) : (
-                <div className="col-span-full text-sm text-muted-foreground p-4 text-center">No picks available for this category today.</div>
-              )}
-            </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ))}
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/30 bg-card p-8 text-center text-sm text-destructive">
+            Failed to load picks. Please try again later.
+          </div>
+        ) : (
+          sections.map(section => (
+            <div key={section.title}>
+              <div className="flex items-center gap-2 mb-3">
+                <section.icon className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">{section.title}</h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {section.data.length > 0 ? section.data.map(p => (
+                  <PickCard key={p.id} p={p} />
+                )) : (
+                  <div className="col-span-full text-sm text-muted-foreground p-4 text-center">No picks available for this category today.</div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
 
         <p className="text-[10px] text-muted-foreground text-center">
           Predictions are for informational purposes only.

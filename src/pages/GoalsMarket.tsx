@@ -1,16 +1,24 @@
 import { useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { getGoalsMarketData } from "@/services/demoPredictions";
-import { Badge } from "@/components/ui/badge";
-import { BarChart3 } from "lucide-react";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
+import { BarChart3, Loader2 } from "lucide-react";
 
 const GoalsMarket = () => {
-  const data = useMemo(() => getGoalsMarketData(), []);
+  const { data: predictions = [], isLoading, error } = usePredictionsData();
+
+  const data = useMemo(() => predictions.map(p => ({
+    matchId: p.id,
+    league: p.league,
+    homeTeam: p.homeTeam,
+    awayTeam: p.awayTeam,
+    over25Prob: p.over25Prob,
+    over35Prob: p.over35Prob,
+    bttsProb: p.bttsProb,
+  })), [predictions]);
+
   const over25 = data.filter(d => d.over25Prob >= 65).sort((a, b) => b.over25Prob - a.over25Prob);
   const over35 = data.filter(d => d.over35Prob >= 40).sort((a, b) => b.over35Prob - a.over35Prob);
   const bttsYes = data.filter(d => d.bttsProb >= 60).sort((a, b) => b.bttsProb - a.bttsProb);
-  const highScoring = data.filter(d => d.category === 'high_scoring');
-  const lowScoring = data.filter(d => d.category === 'low_scoring');
 
   const Section = ({ title, items, valueKey, label }: { title: string; items: typeof data; valueKey: 'over25Prob' | 'over35Prob' | 'bttsProb'; label: string }) => (
     <div>
@@ -43,12 +51,24 @@ const GoalsMarket = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">Goals Market</h1>
-          <p className="text-xs text-muted-foreground mt-1">Goal-focused predictions and probabilities</p>
+          <p className="text-xs text-muted-foreground mt-1">Goal-focused predictions and probabilities · Real-time data</p>
         </div>
 
-        <Section title="Over 2.5 Goals" items={over25} valueKey="over25Prob" label="Over 2.5 probability" />
-        <Section title="Over 3.5 Goals" items={over35} valueKey="over35Prob" label="Over 3.5 probability" />
-        <Section title="BTTS Yes" items={bttsYes} valueKey="bttsProb" label="BTTS probability" />
+        {isLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/30 bg-card p-8 text-center text-sm text-destructive">
+            Failed to load data. Please try again later.
+          </div>
+        ) : (
+          <>
+            <Section title="Over 2.5 Goals" items={over25} valueKey="over25Prob" label="Over 2.5 probability" />
+            <Section title="Over 3.5 Goals" items={over35} valueKey="over35Prob" label="Over 3.5 probability" />
+            <Section title="BTTS Yes" items={bttsYes} valueKey="bttsProb" label="BTTS probability" />
+          </>
+        )}
 
         <p className="text-[10px] text-muted-foreground text-center">
           Predictions are for informational purposes only.

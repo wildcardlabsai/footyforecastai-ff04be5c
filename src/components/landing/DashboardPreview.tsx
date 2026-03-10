@@ -44,7 +44,7 @@ const DashboardPreview = () => {
           {[
             { label: "Today's Picks", value: "24", color: "text-foreground" },
             { label: "High Confidence", value: "8", color: "text-primary" },
-            { label: "Leagues", value: "12", color: "text-accent" },
+            { label: "Leagues", value: "11", color: "text-accent" },
             { label: "Accuracy", value: "68%", color: "text-primary" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-lg border border-border/50 bg-secondary/30 p-3 text-center">

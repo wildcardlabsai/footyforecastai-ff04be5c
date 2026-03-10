@@ -3,9 +3,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StatsWidgets from "@/components/dashboard/StatsWidgets";
 import LiveMatchTable from "@/components/dashboard/LiveMatchTable";
 import HotMatchesPanel from "@/components/dashboard/HotMatchesPanel";
-import RecentAlerts from "@/components/dashboard/RecentAlerts";
 import WatchedGamesPanel from "@/components/dashboard/WatchedGamesPanel";
-import { getDemoAlerts } from "@/services/demoData";
 import { useLiveMatches, usePredictions } from "@/hooks/useLiveMatches";
 import { LiveMatch } from "@/services/liveDataService";
 import { Loader2, WifiOff } from "lucide-react";
@@ -14,7 +12,6 @@ const Dashboard = () => {
   const { data: matches = [], isLoading, error, dataUpdatedAt } = useLiveMatches(30000);
   const predictions = usePredictions(matches);
   const [watchedIds, setWatchedIds] = useState<Set<string>>(() => new Set());
-  const alerts = getDemoAlerts(); // Keep demo alerts until alert system is built
 
   const toggleWatch = (id: string) => {
     setWatchedIds((prev) => {
@@ -32,11 +29,10 @@ const Dashboard = () => {
   const stats = {
     liveMatches: liveCount,
     hotMatches: hotCount,
-    alertsToday: alerts.length,
+    alertsToday: 0,
     predictionAccuracy: 73,
   };
 
-  // Adapt LiveMatch to the shape expected by existing components (DemoMatch-like)
   const adaptedMatches = matches.map((m: LiveMatch) => ({
     id: m.id,
     league: m.league,
@@ -56,7 +52,6 @@ const Dashboard = () => {
       <div className="space-y-4 sm:space-y-6">
         <StatsWidgets stats={stats} />
 
-        {/* Status indicator */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {isLoading ? (
             <>
@@ -76,7 +71,6 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Main content grid */}
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <LiveMatchTable matches={adaptedMatches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
@@ -84,7 +78,6 @@ const Dashboard = () => {
           <div className="space-y-4 sm:space-y-6">
             <WatchedGamesPanel matches={adaptedMatches} predictions={predictions} watchedIds={watchedIds} onToggleWatch={toggleWatch} />
             <HotMatchesPanel matches={adaptedMatches} predictions={predictions} />
-            <RecentAlerts alerts={alerts} />
           </div>
         </div>
       </div>

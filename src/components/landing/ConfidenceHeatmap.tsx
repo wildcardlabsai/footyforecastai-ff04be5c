@@ -1,14 +1,8 @@
 import { motion } from "framer-motion";
-import { getDemoPredictions } from "@/services/demoPredictions";
+import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Lock } from "lucide-react";
-
-const getConfColor = (conf: number) => {
-  if (conf >= 80) return "bg-primary/20 text-primary border-primary/30";
-  if (conf >= 60) return "bg-warning/20 text-warning border-warning/30";
-  return "bg-destructive/20 text-destructive border-destructive/30";
-};
+import { ArrowRight, Lock, Loader2 } from "lucide-react";
 
 const getConfDot = (conf: number) => {
   if (conf >= 80) return "bg-primary";
@@ -17,7 +11,8 @@ const getConfDot = (conf: number) => {
 };
 
 const ConfidenceHeatmap = () => {
-  const predictions = getDemoPredictions().slice(0, 6);
+  const { data: allPredictions = [], isLoading } = usePredictionsData();
+  const predictions = allPredictions.slice(0, 6);
 
   return (
     <section className="py-24">
@@ -42,46 +37,54 @@ const ConfidenceHeatmap = () => {
           viewport={{ once: true }}
           className="mt-12 rounded-xl border border-border bg-card overflow-hidden"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground text-xs">
-                  <th className="px-4 py-3 text-left font-medium">Match</th>
-                  <th className="px-4 py-3 text-center font-medium">Prediction</th>
-                  <th className="px-4 py-3 text-center font-medium">Confidence</th>
-                  <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">BTTS</th>
-                  <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">O2.5</th>
-                </tr>
-              </thead>
-              <tbody>
-                {predictions.map((p, i) => (
-                  <tr key={p.id} className={`border-b border-border/20 transition-colors hover:bg-secondary/20 ${i >= 3 ? 'opacity-40 blur-[2px] select-none' : ''}`}>
-                    <td className="px-4 py-3">
-                      <div className="text-[10px] text-muted-foreground">{p.league}</div>
-                      <div className="font-medium text-foreground">{p.homeTeam} vs {p.awayTeam}</div>
-                    </td>
-                    <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="inline-flex items-center gap-1.5">
-                        <div className={`h-2 w-2 rounded-full ${getConfDot(p.confidence)}`} />
-                        <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-destructive'}`}>
-                          {p.confidence}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center hidden sm:table-cell">
-                      <span className={`text-xs font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {p.bttsResult}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center hidden sm:table-cell font-mono text-muted-foreground">
-                      {p.over25Prob}%
-                    </td>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-12">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : predictions.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">No predictions available right now.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground text-xs">
+                    <th className="px-4 py-3 text-left font-medium">Match</th>
+                    <th className="px-4 py-3 text-center font-medium">Prediction</th>
+                    <th className="px-4 py-3 text-center font-medium">Confidence</th>
+                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">BTTS</th>
+                    <th className="px-4 py-3 text-center font-medium hidden sm:table-cell">O2.5</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {predictions.map((p, i) => (
+                    <tr key={p.id} className={`border-b border-border/20 transition-colors hover:bg-secondary/20 ${i >= 3 ? 'opacity-40 blur-[2px] select-none' : ''}`}>
+                      <td className="px-4 py-3">
+                        <div className="text-[10px] text-muted-foreground">{p.league}</div>
+                        <div className="font-medium text-foreground">{p.homeTeam} vs {p.awayTeam}</div>
+                      </td>
+                      <td className="px-4 py-3 text-center font-medium text-foreground">{p.predictedResult}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="inline-flex items-center gap-1.5">
+                          <div className={`h-2 w-2 rounded-full ${getConfDot(p.confidence)}`} />
+                          <span className={`font-mono font-bold ${p.confidence >= 80 ? 'text-primary' : p.confidence >= 60 ? 'text-warning' : 'text-destructive'}`}>
+                            {p.confidence}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center hidden sm:table-cell">
+                        <span className={`text-xs font-medium ${p.bttsResult === 'Yes' ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {p.bttsResult}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center hidden sm:table-cell font-mono text-muted-foreground">
+                        {p.over25Prob}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="relative flex items-center justify-center py-6 border-t border-border/30">
             <div className="text-center">
