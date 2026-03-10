@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const LEAGUE_IDS = [39, 40, 41, 42, 2, 3, 848, 78, 140, 135, 61];
+const LEAGUE_IDS = new Set([39, 40, 41, 42, 2, 3, 848, 78, 140, 135, 61]);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -31,42 +31,41 @@ serve(async (req) => {
       dates.push(d.toISOString().split('T')[0]);
     }
 
-    // Fetch fixtures by league (more reliable than by date)
-    // Use "from" and "to" params with season + league for efficiency
-    const season = new Date().getFullYear();
-    const fromDate = dates[0];
-    const toDate = dates[dates.length - 1];
+    console.log(`Fetching fixtures for dates: ${dates.join(', ')}`);
 
-    console.log(`Fetching fixtures from ${fromDate} to ${toDate} for ${LEAGUE_IDS.length} leagues`);
-
-    // Batch leagues into groups to reduce calls
+    // Fetch fixtures by date (works on free plan)
     const fixtureResponses = await Promise.all(
-      LEAGUE_IDS.map(leagueId =>
-        fetch(`${BASE}/fixtures?league=${leagueId}&season=${leagueId <= 42 ? season - 1 : season}&from=${fromDate}&to=${toDate}`, { headers: apiHeaders })
-          .then(async r => {
-            const data = await r.json();
-            if (data.errors && Object.keys(data.errors).length > 0) {
-              console.error(`API error for league ${leagueId}:`, JSON.stringify(data.errors));
-            }
-            return data;
-          })
-          .catch(e => {
-            console.error(`Fetch error for league ${leagueId}:`, e.message);
+      dates.map(async date => {
+        try {
+          const res = await fetch(`${BASE}/fixtures?date=${date}`, { headers: apiHeaders });
+          const data = await res.json();
+          if (data.errors && Object.keys(data.errors).length > 0) {
+            console.error(`API error for date ${date}:`, JSON.stringify(data.errors));
             return { response: [] };
-          })
-      )
+          }
+          console.log(`Date ${date}: ${(data.response || []).length} fixtures`);
+          return data;
+        } catch (e) {
+          console.error(`Fetch error for date ${date}:`, (e as Error).message);
+          return { response: [] };
+        }
+      })
     );
 
     const allFixtures = fixtureResponses.flatMap(r => r.response || []);
-    console.log(`Total fixtures fetched: ${allFixtures.length}`);
+    console.log(`Total fixtures: ${allFixtures.length}`);
 
-    // Sort by date and take up to 30
-    allFixtures.sort((a: any, b: any) => 
+    // Filter to our target leagues
+    const filtered = allFixtures.filter((f: any) => LEAGUE_IDS.has(f.league.id));
+    console.log(`Target league fixtures: ${filtered.length}`);
+
+    // Sort by date, take up to 30
+    filtered.sort((a: any, b: any) =>
       new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
     );
-    const limited = allFixtures.slice(0, 30);
+    const limited = filtered.slice(0, 30);
 
-    // Fetch predictions for each fixture
+    // Fetch predictions for each fixture (with rate limit awareness)
     const predictions = await Promise.all(
       limited.map(async (fixture: any) => {
         try {
@@ -75,17 +74,17 @@ serve(async (req) => {
             { headers: apiHeaders }
           );
           if (!res.ok) {
-            console.error(`Prediction API error for fixture ${fixture.fixture.id}: ${res.status}`);
+            console.error(`Prediction API ${res.status} for fixture ${fixture.fixture.id}`);
             return mapFixture(fixture, null);
           }
           const data = await res.json();
           if (data.errors && Object.keys(data.errors).length > 0) {
-            console.error(`Prediction API error for fixture ${fixture.fixture.id}:`, JSON.stringify(data.errors));
+            console.error(`Prediction error for ${fixture.fixture.id}:`, JSON.stringify(data.errors));
             return mapFixture(fixture, null);
           }
           return mapFixture(fixture, data.response?.[0] || null);
         } catch (e) {
-          console.error(`Prediction fetch error for fixture ${fixture.fixture.id}:`, (e as Error).message);
+          console.error(`Prediction fetch error ${fixture.fixture.id}:`, (e as Error).message);
           return mapFixture(fixture, null);
         }
       })
