@@ -9,6 +9,13 @@ const corsHeaders = {
 const BASE = 'https://sports.bzzoiro.com/api';
 const CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
 
+// Target leagues — filter BSD results to only these
+const TARGET_LEAGUES = new Set([
+  'premier league', 'la liga', 'bundesliga', 'serie a',
+  'champions league', 'europa league', 'conference league',
+  'uefa champions league', 'uefa europa league', 'uefa europa conference league',
+]);
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
