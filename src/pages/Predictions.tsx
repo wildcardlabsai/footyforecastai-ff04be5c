@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, ArrowUpDown, Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const getConfBadge = (level: string) => {
   switch (level) {
