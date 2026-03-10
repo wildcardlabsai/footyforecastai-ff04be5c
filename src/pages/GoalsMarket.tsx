@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { usePredictionsData } from "@/hooks/usePredictionsData";
 import { BarChart3, Loader2 } from "lucide-react";
+import TeamBadge from "@/components/TeamBadge";
 
 const GoalsMarket = () => {
   const { data: predictions = [], isLoading, error } = usePredictionsData();
