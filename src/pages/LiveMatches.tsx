@@ -24,7 +24,7 @@ const LiveMatches = () => {
   const today = new Date().toISOString().split('T')[0];
   const liveIds = new Set(liveMatches.map(m => m.id));
   const todayPredictions = predictions
-    .filter(p => p.matchDate?.startsWith(today) && !liveIds.has(p.id))
+    .filter(p => !liveIds.has(p.id))
     .map(p => ({
       id: p.id,
       fixtureId: Number(p.id),
@@ -40,6 +40,7 @@ const LiveMatches = () => {
       status: p.status as 'live' | 'finished' | 'halftime' | 'scheduled',
       predictedResult: p.predictedResult,
       confidence: p.confidence,
+      matchDate: p.matchDate,
     }));
 
   const allMatches = [
