@@ -1,0 +1,61 @@
+import { useMemo } from "react";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getGoalsMarketData } from "@/services/demoPredictions";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3 } from "lucide-react";
+
+const GoalsMarket = () => {
+  const data = useMemo(() => getGoalsMarketData(), []);
+  const over25 = data.filter(d => d.over25Prob >= 65).sort((a, b) => b.over25Prob - a.over25Prob);
+  const over35 = data.filter(d => d.over35Prob >= 40).sort((a, b) => b.over35Prob - a.over35Prob);
+  const bttsYes = data.filter(d => d.bttsProb >= 60).sort((a, b) => b.bttsProb - a.bttsProb);
+  const highScoring = data.filter(d => d.category === 'high_scoring');
+  const lowScoring = data.filter(d => d.category === 'low_scoring');
+
+  const Section = ({ title, items, valueKey, label }: { title: string; items: typeof data; valueKey: 'over25Prob' | 'over35Prob' | 'bttsProb'; label: string }) => (
+    <div>
+      <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+        <BarChart3 className="h-4 w-4 text-primary" /> {title}
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map(d => (
+          <div key={d.matchId} className="rounded-xl border border-border bg-card p-4 hover:border-border/80 transition-colors">
+            <div className="text-[10px] text-muted-foreground mb-1">{d.league}</div>
+            <div className="text-sm font-semibold text-foreground">{d.homeTeam} vs {d.awayTeam}</div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{label}</span>
+              <span className={`font-mono font-bold ${d[valueKey] >= 70 ? 'text-primary' : d[valueKey] >= 50 ? 'text-accent' : 'text-muted-foreground'}`}>
+                {d[valueKey]}%
+              </span>
+            </div>
+            <div className="mt-1.5 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div className={`h-full rounded-full transition-all ${d[valueKey] >= 70 ? 'bg-primary' : d[valueKey] >= 50 ? 'bg-accent' : 'bg-muted-foreground'}`} style={{ width: `${d[valueKey]}%` }} />
+            </div>
+          </div>
+        ))}
+        {items.length === 0 && <div className="col-span-full text-sm text-muted-foreground p-4 text-center">No matches found for this market.</div>}
+      </div>
+    </div>
+  );
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Goals Market</h1>
+          <p className="text-xs text-muted-foreground mt-1">Goal-focused predictions and probabilities</p>
+        </div>
+
+        <Section title="Over 2.5 Goals" items={over25} valueKey="over25Prob" label="Over 2.5 probability" />
+        <Section title="Over 3.5 Goals" items={over35} valueKey="over35Prob" label="Over 3.5 probability" />
+        <Section title="BTTS Yes" items={bttsYes} valueKey="bttsProb" label="BTTS probability" />
+
+        <p className="text-[10px] text-muted-foreground text-center">
+          Predictions are for informational purposes only.
+        </p>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default GoalsMarket;

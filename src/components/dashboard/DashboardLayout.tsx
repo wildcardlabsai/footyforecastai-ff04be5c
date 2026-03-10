@@ -2,13 +2,13 @@ import { useState, ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  LayoutDashboard, Radio, BarChart3, Bell, Sliders,
-  Settings, LogOut, ChevronLeft, ChevronRight, TrendingUp, Menu, X
+  LayoutDashboard, Radio, BarChart3, TrendingUp,
+  Settings, LogOut, ChevronLeft, ChevronRight, Menu, Target, Flame, BookOpen
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -16,11 +16,12 @@ interface DashboardLayoutProps {
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Radio, label: "Live Matches", path: "/live-matches" },
-  { icon: Bell, label: "Alerts", path: "/alerts" },
-  { icon: Sliders, label: "Strategies", path: "/strategies" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  { icon: LayoutDashboard, label: "Predictions", path: "/predictions" },
+  { icon: Radio, label: "Live", path: "/live" },
+  { icon: Target, label: "Daily Picks", path: "/daily-picks" },
+  { icon: Flame, label: "Upset Watch", path: "/upset-watch" },
+  { icon: BarChart3, label: "Goals Market", path: "/goals-market" },
+  { icon: BookOpen, label: "Methodology", path: "/methodology" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
@@ -38,13 +39,12 @@ const SidebarContent = ({
   onNavClick?: () => void;
 }) => (
   <>
-    {/* Logo */}
     <div className="flex h-14 items-center justify-between border-b border-border px-3">
       {!collapsed && (
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <Link to="/predictions" className="flex items-center gap-2">
           <Logo size="sm" />
           <span className="text-sm font-bold text-foreground">
-            GoalPulse<span className="text-primary"> AI</span>
+            Footy<span className="text-primary">Forecast</span>
           </span>
         </Link>
       )}
@@ -53,13 +53,11 @@ const SidebarContent = ({
       )}
     </div>
 
-    {/* Live indicator */}
     <div className={cn("flex items-center gap-2 border-b border-border px-3 py-2", collapsed && "justify-center")}>
       <div className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-      {!collapsed && <span className="text-xs font-mono text-primary">LIVE — DEMO MODE</span>}
+      {!collapsed && <span className="text-xs font-mono text-primary">FREE ACCESS</span>}
     </div>
 
-    {/* Nav items */}
     <nav className="flex-1 space-y-1 p-2">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
@@ -84,7 +82,6 @@ const SidebarContent = ({
       })}
     </nav>
 
-    {/* Bottom */}
     <div className="border-t border-border p-2 space-y-1">
       <button
         onClick={onSignOut}
@@ -122,7 +119,6 @@ const DashboardLayout = ({ children, liveMatchCount }: DashboardLayoutProps) => 
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Desktop Sidebar */}
       <aside
         className={cn(
           "fixed left-0 top-0 z-40 hidden md:flex h-screen flex-col border-r border-border bg-card transition-all duration-300",
@@ -137,7 +133,6 @@ const DashboardLayout = ({ children, liveMatchCount }: DashboardLayoutProps) => 
         />
       </aside>
 
-      {/* Mobile Sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-60 p-0 bg-card border-border md:hidden">
           <div className="flex h-full flex-col">
@@ -151,12 +146,9 @@ const DashboardLayout = ({ children, liveMatchCount }: DashboardLayoutProps) => 
         </SheetContent>
       </Sheet>
 
-      {/* Main content */}
       <main className={cn("flex-1 transition-all duration-300", collapsed ? "md:ml-16" : "md:ml-60")}>
-        {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-4 md:px-6">
           <div className="flex items-center gap-3">
-            {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(true)}
               className="md:hidden text-muted-foreground hover:text-foreground"
@@ -166,14 +158,14 @@ const DashboardLayout = ({ children, liveMatchCount }: DashboardLayoutProps) => 
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-foreground">
-                {navItems.find(n => n.path === location.pathname)?.label || "Dashboard"}
+                {navItems.find(n => n.path === location.pathname)?.label || "Predictions"}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
-              {liveMatchCount ?? 18} matches live
+              Updated today
             </div>
             <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
               {user?.email?.charAt(0).toUpperCase() || "U"}
