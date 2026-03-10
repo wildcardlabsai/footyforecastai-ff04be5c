@@ -11,7 +11,7 @@ export interface DemoMatch {
   homeScore: number;
   awayScore: number;
   minute: number;
-  status: 'live' | 'finished' | 'halftime';
+  status: 'live' | 'finished' | 'halftime' | 'scheduled';
   stats: MatchStats;
 }
 
