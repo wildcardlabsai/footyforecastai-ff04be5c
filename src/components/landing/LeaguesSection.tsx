@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import { LEAGUES } from "@/services/leagues";
 
-const row1 = LEAGUES.slice(0, 6);
-const row2 = LEAGUES.slice(6);
+const row1 = LEAGUES.slice(0, 4);
+const row2 = LEAGUES.slice(4);
 
 const MarqueeRow = ({ items, reverse = false }: { items: typeof LEAGUES; reverse?: boolean }) => (
   <div className="group relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
