@@ -68,7 +68,7 @@ const LiveMatches = () => {
   const statusOrder: Record<string, number> = { live: 0, halftime: 1, scheduled: 2, finished: 3 };
   filtered.sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
 
-  const getStatusBadge = (status: string, minute: number) => {
+  const getStatusBadge = (status: string, minute: number, matchDate?: string) => {
     if (status === 'live') return (
       <div className="flex items-center gap-1 text-primary">
         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-glow" />
